@@ -1,0 +1,27 @@
+{
+
+  "manifest_version": 3,
+  "name": "Tab Extension",
+  "version": "1.0",
+
+  "description": "Visualize and navigate through tabs.",
+  "homepage_url": "https://github.com/argit2/tab-extension",
+
+  "icons": {
+    "32": "icons/32.png"
+  },
+
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "chrome_url_overrides" : {
+    "newtab": "index.html"
+  }
+}

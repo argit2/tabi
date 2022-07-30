@@ -1,11 +1,11 @@
 {
 
   "manifest_version": 3,
-  "name": "Tab Extension",
+  "name": "Tabi",
   "version": "1.0",
 
   "description": "Visualize and navigate through tabs.",
-  "homepage_url": "https://github.com/argit2/tab-extension",
+  "homepage_url": "https://github.com/argit2/tabi",
 
   "icons": {
     "32": "icons/32.png"

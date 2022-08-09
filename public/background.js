@@ -56,7 +56,7 @@ const treeOptionsArr = [
         key : 'domain',
         options : {
             sortingFunction : (a, b) => {
-
+                return a.localeCompare(b);
             }
         }
     },
@@ -88,7 +88,7 @@ const treeOptionsArr = [
         key : 'manualOrder',
         options : {
             sortingFunction : (a, b) => {
-
+                return a.index < b.index;
             }
         }
     }
@@ -149,6 +149,50 @@ class MultipleTabTrees {
     }
 }
 
+function cloneObject(obj) {
+    if (! obj) {
+        return null;
+    }
+
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function getDomain(url) {
+    if (! url) {
+        return url;
+    }
+    const urlObject = new URL(url);
+    const hostname = urlObject.hostname;
+    const split = hostname.split('.');
+    if (split.length == 1) {
+        return split[0];
+    }
+    // example: kit.svelte.dev should return svelte.dev
+    // example2: blog.tumblr.com should return tumblr.com
+    return `${split[split.length - 2]}.${split[split.length -1]}`;
+}
+
+function isBrowserUrl(url) {
+    if (! url) {
+        return false;
+    }
+    const urlObject = new URL(url);
+    const usesBrowserProtocol = !! urlObject.protocol?.match(/browser|chrome|firefox|vivaldi|brave|opera/gi);
+    const isNewTab = !! urlObject.hostname?.match(/newtab/gi);
+    console.log(urlObject, usesBrowserProtocol, isNewTab);
+    return usesBrowserProtocol || isNewTab;
+}
+
+function getTabUrl(tab) {
+    if (! tab) {
+        return null;
+    }
+    if (tab.url) {
+        return tab.url;
+    }
+    return tab.pendingUrl;
+}
+
 // initializes tab trees and handles interactions between browser and the tab trees
 // rationale for class: encapsulation.
 // functions operate on the same variable and cause side effects
@@ -159,6 +203,7 @@ class TabBackgroundWorker {
     constructor () {
         this.multipleTabsTree = new MultipleTabTrees({treeOptionsArr : treeOptionsArr});
         this.initializeCurrentTabs();
+        this.initializeEventListeners();
         this.setReplyToSvelte();
     }
 
@@ -168,23 +213,77 @@ class TabBackgroundWorker {
         tabs.forEach(tab => {
             this.multipleTabsTree.insert(tab);
         });
+
+        const history = await chrome.history.search({text : ''});
+        const visits = await Promise.all(tabs.map(async tab => {
+            return chrome.history.getVisits({url : getTabUrl(tab)})
+
+        }));
+        console.log(history);
+        console.log(visits)
+    }
+
+    async getCurrentTab() {
+        let tab = null;
+        if (this.activeTabId != null) {
+            tab = await chrome.tabs.get(this.activeTabId);
+        }
+        tab = tab ?? (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
+        console.log(this.activeTabId, tab);
+        return tab;
+
+    }
+
+    async getTabLists() {
+        const tabs = await chrome.tabs.query({});
+        let currentTab = await this.getCurrentTab();
+        console.log(tabs, currentTab);
+        if (! tabs || ! currentTab || currentTab.length == 0) {
+            return [];
+        }
+        currentTab = currentTab;
+
+        const domain = getDomain(getTabUrl(currentTab));
+        const tabsWithSameDomain = tabs.filter(tab => {
+            return domain && getDomain(getTabUrl(tab)) == domain;
+        })
+        console.log(domain, tabsWithSameDomain)
+
+        return [
+            {
+                title : 'Manual order',
+                tabs : cloneObject(tabs).sort((a, b) => {
+                    return a.index < b.index;
+                })
+            },
+            {
+                title : 'Domain',
+                tabs : tabsWithSameDomain
+            },
+        ]
+    }
+
+    async replyToSvelte(request, sender, sendResponse) {
+        sendResponse = sendResponse == null ? () => null : sendResponse;
+        switch (request?.messageType) {
+            case 'getTabs':
+                const tabLists = await this.getTabLists();
+                sendResponse({
+                    tabLists: tabLists
+                })
+                break;
+            default:
+                console.log('Unknown messageType', request);
+                break;
+        }
     }
 
     async setReplyToSvelte() {
+        const backgroundWorker = this;
         chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             console.log('Received request', request, sender);
-            sendResponse = sendResponse == null ? () => null : sendResponse;
-            switch (request?.messageType) {
-                case 'getTabs':
-                    // placeholder just to check if it's being passed
-                    sendResponse({
-                        tabLists: []
-                    })
-                    break;
-                default:
-                    console.log('Unknown messageType', request);
-                    break;
-            }
+            backgroundWorker.replyToSvelte(request, sender, sendResponse);
+            return true; // enables sendResponse asynchronous
         });
     }
     
@@ -207,28 +306,45 @@ class TabBackgroundWorker {
         }, 1000);
     }
 
-    initializeCallBacks() {
+    initializeEventListeners() {
         chrome.tabs.onCreated.addListener(
-            this.onTabCreated
+            (tab) => this.onTabCreated(tab)
         );
         chrome.tabs.onRemoved.addListener(
-            this.onTabRemoved
+            (tabId, info) => this.onTabRemoved(tabId, info)
         );
         chrome.tabs.onUpdated.addListener(
-            this.onTabUpdated
+            (tabId, info, tab) => this.onTabUpdated(tabId, info, tab)
         );
+        chrome.tabs.onActivated.addListener(
+            (activeInfo) => this.onTabActivated(activeInfo)
+        )
     }
 
     onTabCreated (tab) {
-        this.multipleTabsTree.insert(tab);
+        // this.multipleTabsTree.insert(tab);
     }
 
     onTabRemoved (tabId, info) {
-        this.multipleTabsTree.remove(tabId);
+        // this.multipleTabsTree.remove(tabId);
     }
 
     onTabUpdated(tabId, info, tab) {
-        this.multipleTabsTree.update(tabId, tab);
+        // this.multipleTabsTree.update(tabId, tab);
+    }
+
+    async onTabActivated(activeInfo) {
+        if (! activeInfo) {
+            return;
+        }
+        const tab = await chrome.tabs.get(activeInfo.tabId);
+        const isBrowserTab = isBrowserUrl(getTabUrl(tab));
+        if (isBrowserTab) {
+            return;
+        }
+        console.log(activeInfo, tab, isBrowserTab);
+        console.log('Tab Activated', tab);
+        this.activeTabId = tab.id;
     }
 }
 

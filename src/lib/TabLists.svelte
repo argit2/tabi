@@ -3,6 +3,8 @@
     import {tabLists} from '../stores.js';
 </script>
 
-{#each $tabLists as list, i}
-    <TabList tabs={list} />
-{/each}
+<div class="grid grid-cols-4">
+    {#each $tabLists as tabList, i}
+    <TabList tabList={tabList} />
+    {/each}
+</div>

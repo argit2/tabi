@@ -13,7 +13,8 @@
 
   "permissions": [
     "tabs",
-    "storage"
+    "storage",
+    "history"
   ],
 
   "background": {

@@ -159,6 +159,7 @@ class TabBackgroundWorker {
     constructor () {
         this.multipleTabsTree = new MultipleTabTrees({treeOptionsArr : treeOptionsArr});
         this.initializeCurrentTabs();
+        this.setReplyToSvelte();
     }
 
     async initializeCurrentTabs() {
@@ -167,7 +168,24 @@ class TabBackgroundWorker {
         tabs.forEach(tab => {
             this.multipleTabsTree.insert(tab);
         });
-        this.sendDataToSvelte();
+    }
+
+    async setReplyToSvelte() {
+        chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+            console.log('Received request', request, sender);
+            sendResponse = sendResponse == null ? () => null : sendResponse;
+            switch (request?.messageType) {
+                case 'getTabs':
+                    // placeholder just to check if it's being passed
+                    sendResponse({
+                        tabLists: []
+                    })
+                    break;
+                default:
+                    console.log('Unknown messageType', request);
+                    break;
+            }
+        });
     }
     
     async sendDataToSvelte() {

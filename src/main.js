@@ -6,16 +6,25 @@ const app = new App({
   target: document.getElementById('app')
 })
 
-chrome.runtime.onMessage.addListener(function(message, information, callback) {
-  callback = callback == null ? () => null : callback;
-  if (! message?.tabLists) {
-    callback({result : 'Received nothing'});
-    return;
+async function getTabs() {
+  const message = {
+    messageType: 'getTabs'
   }
-  const {tabLists} = message;
-  console.log(tabLists);
-  updateTabLists(tabLists);
-  callback({result : 'Received'});
-});
+  const callback = (response) => {
+    if (! response) {
+      return;
+    }
+    console.log('Response', response);
+    if (! response?.tabLists) {
+      callback({result : 'Received nothing'});
+      return;
+    }
+    const {tabLists} = response;
+    updateTabLists(tabLists);
+  }
+  chrome.runtime.sendMessage(message, callback);
+}
+
+getTabs();
 
 export default app

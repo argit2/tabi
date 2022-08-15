@@ -16,5 +16,8 @@
     "svelte-preprocess": "^4.10.7",
     "tailwindcss": "^3.1.6",
     "vite": "^3.0.0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }

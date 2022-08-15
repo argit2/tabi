@@ -1,6 +1,6 @@
 import './app.css'
 import App from './App.svelte'
-import {updateTabLists} from './stores.js';
+import {updateTabLists, updateExtensionStorage} from './stores.js';
 
 const app = new App({
   target: document.getElementById('app')
@@ -25,6 +25,7 @@ async function getTabs() {
   chrome.runtime.sendMessage(message, callback);
 }
 
+updateExtensionStorage();
 getTabs();
 
 export default app

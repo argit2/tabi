@@ -12,6 +12,8 @@ for that reason, we pass a message through chrome api
 */
 // import {updateTabLists} from '../stores.js';
 
+import * as FastDiceCoefficient from './lib/fast-dice-coefficient/dice.js';
+const sorensenDice = FastDiceCoefficient.dice;
 
 // tree of tabs ordered according to a criteria, and indexed to support querying
 // by tab id
@@ -199,6 +201,13 @@ function getTabUrl(tab) {
 // better to encapsulate than to have a lot of functions laying around that
 // modify a global variable
 
+function stringToTokens(str) {
+    if (! str) {
+        return [];
+    }
+    return str.toLowerCase().match(/[a-zA-Z]+/gi)
+}
+
 class TabBackgroundWorker {
     constructor () {
         this.multipleTabsTree = new MultipleTabTrees({treeOptionsArr : treeOptionsArr});
@@ -247,6 +256,14 @@ class TabBackgroundWorker {
         const tabsWithSameDomain = tabs.filter(tab => {
             return domain && getDomain(getTabUrl(tab)) == domain;
         })
+        // const currentTitleTokens = stringToTokens(currentTab.title);
+        const tabSimilarity = tabs.map(tab => {
+            // const titleTokens = stringToTokens(tab.title);
+            const similarity = sorensenDice(currentTab.title ?? '', tab.title ?? '')
+            return [tab, similarity];
+        }).sort((a1, a2) => {
+            return a2[1] - a1[1];
+        }).map(a => a[0]);
         console.log(domain, tabsWithSameDomain)
 
         return [
@@ -260,6 +277,10 @@ class TabBackgroundWorker {
                 title : 'Domain',
                 tabs : tabsWithSameDomain
             },
+            {
+                title : 'Title Similarity',
+                tabs : tabSimilarity
+            }
         ]
     }
 

@@ -252,16 +252,29 @@ class TabBackgroundWorker {
         }
         currentTab = currentTab;
 
+        const manualOrderComparison = (a1, a2) => {
+            return a1.index - a2.index;
+        }
+
         const domain = getDomain(getTabUrl(currentTab));
         const tabsWithSameDomain = tabs.filter(tab => {
             return domain && getDomain(getTabUrl(tab)) == domain;
         })
+        .sort(manualOrderComparison);
+        
         // const currentTitleTokens = stringToTokens(currentTab.title);
+        const minimumSimilarity = 0.25;
         const tabSimilarity = tabs.map(tab => {
             // const titleTokens = stringToTokens(tab.title);
             const similarity = sorensenDice(currentTab.title ?? '', tab.title ?? '')
+            console.log(tab, similarity);
             return [tab, similarity];
-        }).sort((a1, a2) => {
+        })
+        .filter(a => a[1] >= minimumSimilarity)
+        .sort((a1, a2) => {
+            if (a1[1] == a2[1]) {
+                return manualOrderComparison(a1, a2);
+            }
             return a2[1] - a1[1];
         }).map(a => a[0]);
         console.log(domain, tabsWithSameDomain)

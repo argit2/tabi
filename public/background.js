@@ -289,8 +289,10 @@ class TabBackgroundWorker {
         switch (request?.messageType) {
             case 'getTabs':
                 const tabLists = await this.getTabLists();
+                const currentTab = await this.getCurrentTab();
                 sendResponse({
-                    tabLists: tabLists
+                    tabLists: tabLists,
+                    currentTab : currentTab,
                 })
                 break;
             default:

@@ -1,10 +1,11 @@
 <script>
-    import TabList from './TabList.svelte'
+    import TabList from './TabList.svelte';
     import {tabLists} from '../stores.js';
+    import {currentTab} from '../stores.js';
 </script>
 
 <div class="grid grid-cols-4 gap-4">
     {#each $tabLists as tabList, i}
-    <TabList tabList={tabList} />
+    <TabList tabList={tabList} currentTab={$currentTab}/>
     {/each}
 </div>

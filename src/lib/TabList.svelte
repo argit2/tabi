@@ -1,5 +1,6 @@
 <script>
 export let tabList;
+export let currentTab;
 function onClick(tabId) {
     chrome.tabs.update(tabId, {active: true})
 }
@@ -9,7 +10,7 @@ function onClick(tabId) {
     <div class="flex flex-row ml-4 mr-4 text-lg">{ tabList.title }</div>
     <div class="border border-black rounded divide-y">
         {#each tabList.tabs as { title, url, favIconUrl, id}, i}
-        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent" on:click={() => onClick(id)}>
+        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {id == currentTab.id ? 'bg-slate-200' : ''}" on:click={() => onClick(id)}>
             <div class="w-full overflow-hidden ml-1">
                 <div class="flex flex-row w-full">
                     <div class="block w-4 h-4 min-w-max min-h-max self-center">

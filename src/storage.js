@@ -12,13 +12,12 @@ export class ExtensionStorage {
         }
         const currentStorage = await this.get();
         const newStorage = _.cloneDeep(_.merge({}, this.defaultStorage, currentStorage, data));
-        await chrome.storage.set(newStorage);
+        await chrome.storage.sync.set(newStorage);
     }
 
     async get () {
         const result = await chrome.storage.sync.get();
         const storage = _.cloneDeep(_.merge({}, this.defaultStorage, result));
-        console.log(storage);
         return storage;
     }
 }

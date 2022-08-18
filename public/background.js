@@ -267,7 +267,6 @@ class TabBackgroundWorker {
         const tabSimilarity = tabs.map(tab => {
             // const titleTokens = stringToTokens(tab.title);
             const similarity = sorensenDice(currentTab.title ?? '', tab.title ?? '')
-            console.log(tab, similarity);
             return [tab, similarity];
         })
         .filter(a => a[1] >= minimumSimilarity)

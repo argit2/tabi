@@ -40,7 +40,7 @@ function onClickRead(url) {
     <div class="flex flex-row ml-4 mr-4 text-lg">{ tabList.title }</div>
     <div class="border border-black rounded divide-y overflow-auto h-full">
         <VirtualList items={tabList.tabs} let:item>
-        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-slate-200' : ''}" title="{item.url}">
+        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-slate-200' : ''}" title="{item.title + '\n' + item.url}">
             <div class="w-full overflow-hidden ml-1"  on:click={() => onTabClick(item.id)}>
                 <div class="flex flex-row w-full">
                     <div class="block w-4 h-4 min-w-max min-h-max self-center">

@@ -14,7 +14,6 @@ async function getTabs() {
     if (! response) {
       return;
     }
-    console.log('Response', response);
     if (! response?.tabLists) {
       callback({result : 'Received nothing'});
       return;

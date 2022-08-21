@@ -181,7 +181,6 @@ function isBrowserUrl(url) {
     const urlObject = new URL(url);
     const usesBrowserProtocol = !! urlObject.protocol?.match(/browser|chrome|firefox|vivaldi|brave|opera/gi);
     const isNewTab = !! urlObject.hostname?.match(/newtab/gi);
-    console.log(urlObject, usesBrowserProtocol, isNewTab);
     return usesBrowserProtocol || isNewTab;
 }
 
@@ -218,7 +217,6 @@ class TabBackgroundWorker {
 
     async initializeCurrentTabs() {
         const tabs = await chrome.tabs.query({});
-        console.log(tabs);
         tabs.forEach(tab => {
             this.multipleTabsTree.insert(tab);
         });
@@ -238,7 +236,6 @@ class TabBackgroundWorker {
             tab = await chrome.tabs.get(this.activeTabId);
         }
         tab = tab ?? (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
-        console.log(this.activeTabId, tab);
         return tab;
 
     }
@@ -246,7 +243,6 @@ class TabBackgroundWorker {
     async getTabLists() {
         const tabs = await chrome.tabs.query({});
         let currentTab = await this.getCurrentTab();
-        console.log(tabs, currentTab);
         if (! tabs || ! currentTab || currentTab.length == 0) {
             return [];
         }
@@ -276,7 +272,6 @@ class TabBackgroundWorker {
             }
             return a2[1] - a1[1];
         }).map(a => a[0]);
-        console.log(domain, tabsWithSameDomain)
 
         return [
             {
@@ -316,7 +311,6 @@ class TabBackgroundWorker {
     async setReplyToSvelte() {
         const backgroundWorker = this;
         chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-            console.log('Received request', request, sender);
             backgroundWorker.replyToSvelte(request, sender, sendResponse);
             return true; // enables sendResponse asynchronous
         });
@@ -330,7 +324,6 @@ class TabBackgroundWorker {
                 console.log('sending message');
                 chrome.runtime.sendMessage({tabLists: [tabs]}, {}, function(response) {
                     if (response) {
-                        console.log('Response', response);
                         clearInterval(interval);
                     }
                 });
@@ -377,8 +370,6 @@ class TabBackgroundWorker {
         if (isBrowserTab) {
             return;
         }
-        console.log(activeInfo, tab, isBrowserTab);
-        console.log('Tab Activated', tab);
         this.activeTabId = tab.id;
     }
 }

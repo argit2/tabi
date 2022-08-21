@@ -151,6 +151,7 @@ class MultipleTabTrees {
     }
 }
 
+// warning: slow
 function cloneObject(obj) {
     if (! obj) {
         return null;
@@ -276,7 +277,7 @@ class TabBackgroundWorker {
         return [
             {
                 title : 'Manual order',
-                tabs : cloneObject(tabs).sort((a, b) => {
+                tabs : tabs.sort((a, b) => {
                     return a.index < b.index;
                 })
             },

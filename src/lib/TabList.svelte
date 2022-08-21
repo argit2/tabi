@@ -23,7 +23,7 @@ const readTitleDict = {
 const readStates = Object.keys(readIconDict).length;
 
 const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center'
-const iconClasses = 'text-base self-center self-justify-center m-auto';
+const iconClasses = 'text-sm self-center self-justify-center m-auto';
 
 function onClickRelevant(url) {
     setTabProperty(url, 'relevant', ! $storage.urlData[url]?.relevant)
@@ -40,15 +40,14 @@ function onClickRead(url) {
     <div class="flex flex-row ml-4 mr-4 text-lg">{ tabList.title }</div>
     <div class="border border-black rounded divide-y overflow-auto h-full">
         <VirtualList items={tabList.tabs} let:item>
-        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-slate-200' : ''}">
+        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-slate-200' : ''}" title="{item.url}">
             <div class="w-full overflow-hidden ml-1"  on:click={() => onTabClick(item.id)}>
                 <div class="flex flex-row w-full">
                     <div class="block w-4 h-4 min-w-max min-h-max self-center">
-                        <img class="w-4 h-4 self-center" src="{item.favIconUrl}" alt="" title="{item.title}">
+                        <img class="w-4 h-4 self-center" src="{item.favIconUrl}" alt="">
                     </div>
-                    <div class="text-base text-truncate whitespace-nowrap w-full" title="{item.title}">{item.title}</div>
+                    <div class="text-sm text-truncate whitespace-nowrap w-full">{item.title}</div>
                 </div>
-                <div class="text-xs text-truncate break-all whitespace-nowrap w-full" title="{item.url}">{item.url}</div>
             </div>
             <div class="flex flex-row pl-2 pr-1 gap-1">
                 <div class="{iconContainerClasses}">

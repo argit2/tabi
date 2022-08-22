@@ -22,7 +22,7 @@ const readTitleDict = {
 
 const readStates = Object.keys(readIconDict).length;
 
-const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center'
+const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center rounded hover:bg-slate-300'
 const iconClasses = 'text-sm self-center self-justify-center m-auto';
 
 function onClickRelevant(url) {
@@ -70,14 +70,14 @@ function onClickClose(tabId) {
                     <div class="text-sm text-truncate whitespace-nowrap w-full">{item.title}</div>
                 </div>
             </div>
-            <div class="flex flex-row pl-2 pr-1 gap-1 cursor-pointer">
+            <div class="flex flex-row pl-2 pr-1 gap-1">
                 <div class="{iconContainerClasses}">
                     <i class="fa-star {iconClasses} {$storage.urlData[processUrlToPutOnStorage(item.url)]?.relevant ? 'fa-solid text-amber-300' : 'fa-regular' }" title="Relevant" on:click={() => onClickRelevant(item.url)}></i>
                 </div>
                 <div class="{iconContainerClasses}">
                     <i class="{readIconDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]} {iconClasses}" title="{readTitleDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]}" on:click={() => onClickRead(item.url)}></i>
                 </div>
-                <div class="{iconContainerClasses}">
+                <div class="{iconContainerClasses} cursor-default">
                     <i class="fa-solid fa-xmark {iconClasses}" title="Close" on:click={() => onClickClose(item.id)}></i>
                 </div>
             </div>

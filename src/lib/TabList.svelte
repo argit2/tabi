@@ -1,6 +1,6 @@
 <script>
 import VirtualList from '@sveltejs/svelte-virtual-list';
-import { storage, setTabProperty, processUrlToPutOnStorage, getUrlData, importantTabs, toReadTabs, updateRelevantTabs, updateToReadTabs} from "../stores.js";
+import { tabLists, updateTabLists, storage, setTabProperty, processUrlToPutOnStorage, getUrlData, importantTabs, toReadTabs, updateRelevantTabs, updateToReadTabs} from "../stores.js";
 
 export let tabList;
 export let currentTab;
@@ -41,6 +41,20 @@ function onClickRead(url) {
     updateToReadTabs();
 }
 
+function onClickClose(tabId) {
+    chrome.tabs.remove(tabId);
+    const newTabLists = $tabLists
+    $tabLists?.forEach(tabList => {
+        if (! tabList) {
+            return;
+        }
+        console.log(tabList);
+        tabList.tabs = tabList?.tabs?.filter(tab => tab.id != tabId) ?? [];
+    })
+    console.log(newTabLists);
+    updateTabLists(newTabLists)
+}
+
 </script>
 
 <div class="flex-col max-w-md h-full">
@@ -56,12 +70,15 @@ function onClickRead(url) {
                     <div class="text-sm text-truncate whitespace-nowrap w-full">{item.title}</div>
                 </div>
             </div>
-            <div class="flex flex-row pl-2 pr-1 gap-1">
+            <div class="flex flex-row pl-2 pr-1 gap-1 cursor-pointer">
                 <div class="{iconContainerClasses}">
                     <i class="fa-star {iconClasses} {$storage.urlData[processUrlToPutOnStorage(item.url)]?.relevant ? 'fa-solid text-amber-300' : 'fa-regular' }" title="Relevant" on:click={() => onClickRelevant(item.url)}></i>
                 </div>
                 <div class="{iconContainerClasses}">
                     <i class="{readIconDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]} {iconClasses}" title="{readTitleDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]}" on:click={() => onClickRead(item.url)}></i>
+                </div>
+                <div class="{iconContainerClasses}">
+                    <i class="fa-solid fa-xmark {iconClasses}" title="Close" on:click={() => onClickClose(item.id)}></i>
                 </div>
             </div>
         </div>

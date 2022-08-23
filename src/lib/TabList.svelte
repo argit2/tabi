@@ -71,11 +71,11 @@ function onClickClose(tabId) {
                 </div>
             </div>
             <div class="flex flex-row pl-2 pr-1 gap-1">
-                <div class="{iconContainerClasses}">
-                    <i class="fa-star {iconClasses} {$storage.urlData[processUrlToPutOnStorage(item.url)]?.relevant ? 'fa-solid text-amber-300' : 'fa-regular' }" title="Relevant" on:click={() => onClickRelevant(item.url)}></i>
+                <div class="{iconContainerClasses}" on:click={() => onClickRelevant(item.url)}>
+                    <i class="fa-star {iconClasses} {$storage.urlData[processUrlToPutOnStorage(item.url)]?.relevant ? 'fa-solid text-amber-300' : 'fa-regular' }" title="Relevant"></i>
                 </div>
-                <div class="{iconContainerClasses}">
-                    <i class="{readIconDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]} {iconClasses}" title="{readTitleDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]}" on:click={() => onClickRead(item.url)}></i>
+                <div class="{iconContainerClasses}" on:click={() => onClickRead(item.url)}>
+                    <i class="{readIconDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]} {iconClasses}" title="{readTitleDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]}"></i>
                 </div>
                 <div class="{iconContainerClasses} cursor-default">
                     <i class="fa-solid fa-xmark {iconClasses}" title="Close" on:click={() => onClickClose(item.id)}></i>

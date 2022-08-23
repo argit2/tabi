@@ -77,8 +77,8 @@ function onClickClose(tabId) {
                 <div class="{iconContainerClasses}" on:click={() => onClickRead(item.url)}>
                     <i class="{readIconDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]} {iconClasses}" title="{readTitleDict[$storage.urlData[processUrlToPutOnStorage(item.url)]?.read ?? 0]}"></i>
                 </div>
-                <div class="{iconContainerClasses} cursor-default">
-                    <i class="fa-solid fa-xmark {iconClasses}" title="Close" on:click={() => onClickClose(item.id)}></i>
+                <div class="{iconContainerClasses} cursor-default" on:click={() => onClickClose(item.id)}>
+                    <i class="fa-solid fa-xmark {iconClasses}" title="Close"></i>
                 </div>
             </div>
         </div>

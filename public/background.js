@@ -217,7 +217,7 @@ class TabBackgroundWorker {
     }
 
     async initializeCurrentTabs() {
-        const tabs = await chrome.tabs.query({});
+        const tabs = await chrome.tabs.query({currentWindow : true});
         tabs.forEach(tab => {
             this.multipleTabsTree.insert(tab);
         });
@@ -236,13 +236,13 @@ class TabBackgroundWorker {
         if (this.activeTabId != null) {
             tab = await chrome.tabs.get(this.activeTabId);
         }
-        tab = tab ?? (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
+        tab = tab ?? (await chrome.tabs.query({ active: true, currentWindow : true}))[0];
         return tab;
 
     }
 
     async getTabLists() {
-        const tabs = await chrome.tabs.query({});
+        const tabs = await chrome.tabs.query({currentWindow : true});
         let currentTab = await this.getCurrentTab();
         if (! tabs || ! currentTab || currentTab.length == 0) {
             return [];
@@ -321,7 +321,7 @@ class TabBackgroundWorker {
         // placeholder just to check if it's being passed
         let interval = setInterval(async () => {
             try {
-                const tabs = await chrome.tabs.query({});
+                const tabs = await chrome.tabs.query({currentWindow : true});
                 console.log('sending message');
                 chrome.runtime.sendMessage({tabLists: [tabs]}, {}, function(response) {
                     if (response) {

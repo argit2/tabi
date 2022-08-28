@@ -1,7 +1,27 @@
 ![Tabi logo](./public/icons/icon_128.png)
 # Tabi
 
-Tabi is a browser extension created to help users to visualize their tabs.
+Tabi is a browser extension created to help users with too many tabs, without the need to spend effort with manual ordering.
+
+- Lots of social media tabs? View tabs from the same site all in the same place, no need to organize them yourself!
+- Researching about a topic? Mark important tabs and tabs you already read
+- Finished researching? See tabs about the same topic in the same place and close them all!
+
+## Concept
+
+This extension was made as part of my bachelor's thesis
+
+- The current design of browser tabs does not attend to user needs
+- The design often leads to
+  - Tab hoarding: you have too many tabs
+  - Black hole effect: old tabs go out of your view
+- Tabs don't have enough contextual information
+- Other extensions attempt to solve the issue by helping the user manually order the tabs into categories
+- Manually ordering tabs takes effort and doesn't solve the issue for hundreds of tabs
+- This extension tries to solve the problem by
+  - Using an alternative design for displaying tabs that allows the users to see more information and related tabs
+  - Organizing tabs with as little user input as possible
+  - Allowing the user to add more contextual data to the tabs, such as whether the tab was already read or not.
 
 ## Loading the extension
 

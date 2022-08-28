@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && bash ./compile_firefox.sh",
     "preview": "vite preview"
   },
   "devDependencies": {

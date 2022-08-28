@@ -1,11 +1,13 @@
 <script>
 import VirtualList from '@sveltejs/svelte-virtual-list';
 import { tabLists, updateTabLists, storage, setTabProperty, processUrlToPutOnStorage, getUrlData, importantTabs, toReadTabs, updateRelevantTabs, updateToReadTabs} from "../stores.js";
+import polyfillBrowser from '../polyfillBrowser.js';
+import _ from 'lodash';
 
 export let tabList;
 export let currentTab;
 function onTabClick(tabId) {
-    chrome.tabs.update(tabId, {active: true})
+    polyfillBrowser.tabs.update(tabId, {active: true})
 }
 
 const readIconDict = {
@@ -42,16 +44,14 @@ function onClickRead(url) {
 }
 
 function onClickClose(tabId) {
-    chrome.tabs.remove(tabId);
-    const newTabLists = $tabLists
-    $tabLists?.forEach(tabList => {
+    polyfillBrowser.tabs.remove(tabId);
+    const newTabLists = _.clone($tabLists);
+    newTabLists?.forEach(tabList => {
         if (! tabList) {
             return;
         }
-        console.log(tabList);
         tabList.tabs = tabList?.tabs?.filter(tab => tab.id != tabId) ?? [];
     })
-    console.log(newTabLists);
     updateTabLists(newTabLists)
 }
 

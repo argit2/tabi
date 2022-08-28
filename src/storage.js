@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import polyfillBrowser from './polyfillBrowser.js';
 
 export class ExtensionStorage {
     defaultStorage = {
@@ -12,11 +13,11 @@ export class ExtensionStorage {
         }
         const currentStorage = await this.get();
         const newStorage = _.cloneDeep(_.merge({}, this.defaultStorage, currentStorage, data));
-        await chrome.storage.sync.set(newStorage);
+        await polyfillBrowser.storage.sync.set(newStorage);
     }
 
     async get () {
-        const result = await chrome.storage.sync.get();
+        const result = await polyfillBrowser.storage.sync.get();
         const storage = _.cloneDeep(_.merge({}, this.defaultStorage, result));
         return storage;
     }

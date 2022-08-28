@@ -1,6 +1,7 @@
 import './app.css'
 import App from './App.svelte'
 import {updateTabLists, updateCurrentTab, updateExtensionStorage} from './stores.js';
+import polyfillBrowser from './polyfillBrowser.js';
 
 const app = new App({
   target: document.getElementById('app')
@@ -22,7 +23,7 @@ async function getTabs() {
     updateTabLists(tabLists);
     updateCurrentTab(currentTab);
   }
-  chrome.runtime.sendMessage(message, callback);
+  polyfillBrowser.runtime.sendMessage(message, callback);
 }
 
 updateExtensionStorage();

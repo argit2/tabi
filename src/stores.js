@@ -43,7 +43,7 @@ export function updateToReadTabs() {
         tabs : tabs,
     };
     toReadTabs.update(oldToReadTabs => newToReadTabs)
-    
+
 }
 
 export function getUrlData(url) {

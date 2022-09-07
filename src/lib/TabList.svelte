@@ -57,9 +57,9 @@ function onClickClose(tabId) {
 
 </script>
 
-<div class="flex-col max-w-md h-full">
-    <div class="flex flex-row ml-4 mr-4 text-lg">{ tabList.title }</div>
-    <div class="border border-black rounded divide-y overflow-auto h-5/6">
+<div class="flex flex-col justify-items-center justify-center max-w-full md:max-w-md h-full {tabList.title?.includes("Manual order") ? 'row-start-1 row-end-4' : 'row-span-1'} md:row-auto">
+    <div class="ml-4 mr-4 text-md max-h-10 h-7">{ tabList.title }</div>
+    <div class="border-t border-b md:border border-black rounded divide-y overflow-auto grow">
         <VirtualList items={tabList?.tabs ?? []} let:item>
         <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-slate-200' : ''}" title="{item.title + '\n' + item.url}">
             <div class="w-full overflow-hidden ml-1"  on:click={() => onTabClick(item.id)}>

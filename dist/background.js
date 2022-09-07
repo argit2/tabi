@@ -19,9 +19,12 @@ if (typeof browser !== 'undefined') {
 else {
     polyfillBrowser = chrome;
 }
+if (! polyfillBrowser) {
+    polyfillBrowser = browser;
+}
 
 function setIconClick() {
-    polyfillBrowser.action.onClicked.addListener(async (tab) => {
+    polyfillBrowser?.action?.onClicked.addListener(async (tab) => {
         const currentWindow = await polyfillBrowser.windows.getCurrent();
         polyfillBrowser.windows.create({
             height : currentWindow.height,

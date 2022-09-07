@@ -208,6 +208,7 @@ class BrowserMediator {
         }
         this.activeTabId = tab.id;
         this.updateTabs();
+        updateCurrentTab(tab);
     }
 }
 

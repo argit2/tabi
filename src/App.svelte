@@ -10,7 +10,7 @@
 </script>
 
 <main>
-  <div class="bg-stone-50">
+  <div class="bg-zinc-50 text-black dark:bg-zinc-800 dark:text-zinc-300">
     <TabLists />
   </div>
 </main>

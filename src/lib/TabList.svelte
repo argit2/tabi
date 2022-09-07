@@ -24,7 +24,7 @@ const readTitleDict = {
 
 const readStates = Object.keys(readIconDict).length;
 
-const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center rounded hover:bg-slate-300'
+const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center rounded hover:bg-zinc-300 dark:hover:bg-zinc-600'
 const iconClasses = 'text-sm self-center self-justify-center m-auto';
 
 function onClickRelevant(url) {
@@ -59,9 +59,9 @@ function onClickClose(tabId) {
 
 <div class="flex flex-col justify-items-center justify-center max-w-full md:max-w-md h-full {tabList.title?.includes("Manual order") ? 'row-start-1 row-end-4' : 'row-span-1'} md:row-auto">
     <div class="ml-4 mr-4 text-md max-h-10 h-7">{ tabList.title }</div>
-    <div class="border-t border-b md:border border-black rounded divide-y overflow-auto grow">
+    <div class="border-t border-b md:border border-black dark:border-zinc-400 rounded divide-y overflow-auto grow">
         <VirtualList items={tabList?.tabs ?? []} let:item>
-        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-slate-500 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-slate-200' : ''}" title="{item.title + '\n' + item.url}">
+        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-zinc-600 dark:hover:border-l-zinc-400 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-zinc-200 dark:bg-zinc-600' : ''}" title="{item.title + '\n' + item.url}">
             <div class="w-full overflow-hidden ml-1"  on:click={() => onTabClick(item.id)}>
                 <div class="flex flex-row w-full">
                     <div class="block w-4 h-4 min-w-max min-h-max self-center">

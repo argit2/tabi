@@ -18,7 +18,8 @@
   "permissions": [
     "tabs",
     "storage",
-    "history"
+    "history",
+    "bookmarks"
   ],
 
   "background": {

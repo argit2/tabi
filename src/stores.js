@@ -5,6 +5,7 @@ import { ExtensionStorage  } from './storage';
 const extensionStorage = new ExtensionStorage();
 
 export let tabLists = writable([]);
+export let bookmarkLists = writable({});
 export let currentTab = writable({});
 export let storage = writable({});
 export let importantTabs = writable({});
@@ -14,6 +15,10 @@ export function updateTabLists(newTabLists) {
     tabLists.update(oldTabLists => newTabLists)
     updateRelevantTabs();
     updateToReadTabs();
+}
+
+export function updateBookmarkLists(newBookmarkLists) {
+    bookmarkLists.update(oldBookmarkLists => newBookmarkLists)
 }
 
 function getAllTabs() {

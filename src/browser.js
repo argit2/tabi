@@ -1,7 +1,7 @@
 import polyfillBrowser from './polyfillBrowser.js';
 import * as FastDiceCoefficient from './lib/fast-dice-coefficient/dice.js';
 const sorensenDice = FastDiceCoefficient.dice;
-import {updateTabLists, updateCurrentTab, updateExtensionStorage} from './stores.js';
+import {updateTabLists, updateCurrentTab, updateExtensionStorage, updateBookmarkLists} from './stores.js';
 
 // warning: slow
 function cloneObject(obj) {
@@ -58,11 +58,10 @@ function arrIsEmpty(arr) {
     return Array.isArray(arr) && arr.length == 0;
 }
 
-// this class was initially made on background.js because it would hold
-// persistent data structures
-// those functions no longer need to be in a class
+// is a class because might hold persistent data structures
 class BrowserMediator {
     constructor () {
+        this.flattenedBookmarks = null;
     }
 
     async initializeCurrentTabs() {
@@ -89,6 +88,9 @@ class BrowserMediator {
             const windowId = await polyfillBrowser.windows.getCurrent()?.id;
             tab = await polyfillBrowser.tabs.query({active : true, windowId : windowId});
         }
+        if (Array.isArray(tab)) {
+            tab = tab[0];
+        }
         return tab;
     }
 
@@ -104,13 +106,26 @@ class BrowserMediator {
         return tabs ?? [];
     }
 
+    getMostSimilar(tabOrBookmarkArr, title) {
+        if (! tabOrBookmarkArr || ! Array.isArray(tabOrBookmarkArr)) {
+            return [];
+        }
+        const minimumSimilarity = 0.25;
+        const tabSimilarity = tabOrBookmarkArr.map(tabOrBookmark => {
+            // const titleTokens = stringToTokens(tabOrBookmark.title);
+            const similarity = sorensenDice(title ?? '', tabOrBookmark.title ?? '')
+            return [tabOrBookmark, similarity];
+        })
+        .filter(a => a[1] >= minimumSimilarity)
+        return tabSimilarity;
+    }
+
     async getTabLists() {
         const tabs = await this.getTabsFromCurrentWindow();
-        let currentTab = await this.getCurrentTab();
+        const currentTab = await this.getCurrentTab();
         if (! tabs || ! currentTab || currentTab.length == 0) {
             return [];
         }
-        currentTab = currentTab;
 
         const manualOrderComparison = (a1, a2) => {
             return a1.index - a2.index;
@@ -123,13 +138,7 @@ class BrowserMediator {
         .sort(manualOrderComparison);
         
         // const currentTitleTokens = stringToTokens(currentTab.title);
-        const minimumSimilarity = 0.25;
-        const tabSimilarity = tabs.map(tab => {
-            // const titleTokens = stringToTokens(tab.title);
-            const similarity = sorensenDice(currentTab.title ?? '', tab.title ?? '')
-            return [tab, similarity];
-        })
-        .filter(a => a[1] >= minimumSimilarity)
+        const tabSimilarity = this.getMostSimilar(tabs, currentTab.title ?? '')
         .sort((a1, a2) => {
             if (a1[1] == a2[1]) {
                 return manualOrderComparison(a1, a2);
@@ -146,13 +155,37 @@ class BrowserMediator {
             },
             {
                 title : 'Domain',
-                tabs : tabsWithSameDomain
+                tabs : tabsWithSameDomain,
             },
             {
                 title : 'Title Similarity',
-                tabs : tabSimilarity
+                tabs : tabSimilarity,
             }
         ]
+    }
+
+    async getBookmarkLists () {
+        const currentTab = await this.getCurrentTab();
+        const bookmarks = await this.getFlattenedBookmarks() ?? [];
+        if (! bookmarks || ! currentTab || currentTab.length == 0) {
+            return [];
+        }
+
+        const domain = getDomain(getTabUrl(currentTab));
+        const bookmarksWithSameDomain = bookmarks.filter(bookmark => {
+            return domain && getDomain(bookmark?.url ?? '') == domain;
+        })
+        const bookmarksSimilarity = this.getMostSimilar(bookmarks, currentTab.title ?? '').map(a => a[0]);
+
+        const bookmarkLists = {
+            'Domain' : {
+                bookmarks : bookmarksWithSameDomain
+            },
+            'Title Similarity' : {
+                bookmarks : bookmarksSimilarity
+            }
+        };
+        return bookmarkLists;
     }
 
     async getTabById(tabId) {
@@ -165,6 +198,11 @@ class BrowserMediator {
         const currentTab = await this.getCurrentTab();
         updateTabLists(tabLists);
         updateCurrentTab(currentTab);
+    }
+
+    async updateBookmarks() {
+        const bookmarkLists = await this.getBookmarkLists();
+        updateBookmarkLists(bookmarkLists);
     }
 
     initializeEventListeners() {
@@ -208,7 +246,73 @@ class BrowserMediator {
         }
         this.activeTabId = tab.id;
         this.updateTabs();
+        this.updateBookmarks();
         updateCurrentTab(tab);
+    }
+
+    flattenBookmarksTree(root) {
+        if (! root) {
+            return [];
+        }
+        const nodes = [];
+        const stack = [root];
+        while (stack.length > 0) {
+            const current = stack.pop();
+            if (! current) {
+                continue;
+            }
+            if (current.type == 'bookmark') {
+                nodes.push(current);
+                continue;
+            }
+            else {
+                if (Array.isArray(current?.children)) {
+                    stack.push(...current.children);
+                }
+            }
+        }
+        return nodes;
+    }
+
+    flattenBookmarksTreeRecursive(root) {
+        if (! root) {
+            return [];
+        }
+        const nodes = [];
+        const recursion = (node) => {
+            if (node.type == 'bookmark') {
+                nodes.push(node);
+            }
+            else {
+                if (Array.isArray(node?.children)) {
+                    node.children.forEach(childNode => {
+                        recursion(childNode);
+                    })
+                }
+            }
+        }
+        recursion(root);
+        return nodes;
+    }
+
+    async getBookmarksTree() {
+        const bookmarks = await polyfillBrowser.bookmarks.getTree();
+        return bookmarks;
+    }
+
+    async getFlattenedBookmarks() {
+        // expensive operation, end user won't care if bookmarks are updated
+        // if (this.flattenedBookmarks) {
+        //     return this.flattenedBookmarks;
+        // }
+        const bookmarks = await this.getBookmarksTree();
+        if (! bookmarks || bookmarks.length == 0) {
+            return [];
+        }
+        const root = bookmarks[0];
+        const flattenedBookmarks = this.flattenBookmarksTree(root);
+        // this.flattenedBookmarks = flattenedBookmarks;
+        return flattenedBookmarks;
     }
 }
 

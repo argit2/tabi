@@ -16,6 +16,7 @@ class Tabi {
   async initializeExtension() {
     updateExtensionStorage();
     await this.browserMediator.updateTabs();
+    await this.browserMediator.updateBookmarks();
     await this.browserMediator.initializeEventListeners();
   }
 

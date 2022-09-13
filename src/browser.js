@@ -261,7 +261,7 @@ class BrowserMediator {
             if (! current) {
                 continue;
             }
-            if (current.type == 'bookmark') {
+            if (current.type == 'bookmark' || current.url != null) {
                 nodes.push(current);
                 continue;
             }
@@ -280,7 +280,7 @@ class BrowserMediator {
         }
         const nodes = [];
         const recursion = (node) => {
-            if (node.type == 'bookmark') {
+            if (node.type == 'bookmark' || node.url != null) {
                 nodes.push(node);
             }
             else {
@@ -306,12 +306,20 @@ class BrowserMediator {
         //     return this.flattenedBookmarks;
         // }
         const bookmarks = await this.getBookmarksTree();
+        console.log(bookmarks);
         if (! bookmarks || bookmarks.length == 0) {
             return [];
         }
         const root = bookmarks[0];
         const flattenedBookmarks = this.flattenBookmarksTree(root);
+        flattenedBookmarks.forEach(bookmark => {
+            if (! bookmark) {
+                return;
+            }
+            bookmark.type = 'bookmark';
+        })
         // this.flattenedBookmarks = flattenedBookmarks;
+        console.log(flattenedBookmarks);
         return flattenedBookmarks;
     }
 }

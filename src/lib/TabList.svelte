@@ -45,14 +45,7 @@ function onClickRead(url) {
 
 function onClickClose(tabId) {
     polyfillBrowser.tabs.remove(tabId);
-    const newTabLists = _.clone($tabLists);
-    newTabLists?.forEach(tabList => {
-        if (! tabList) {
-            return;
-        }
-        tabList.tabs = tabList?.tabs?.filter(tab => tab.id != tabId) ?? [];
-    })
-    updateTabLists(newTabLists)
+    // updating the UI is done by close tab event listener
 }
 
 </script>

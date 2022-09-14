@@ -10,6 +10,7 @@ export let currentTab = writable({});
 export let storage = writable({});
 export let importantTabs = writable({});
 export let toReadTabs = writable({});
+export let expectingTabClose = writable({});
 
 export function updateTabLists(newTabLists) {
     tabLists.update(oldTabLists => newTabLists)
@@ -85,4 +86,14 @@ export async function setTabProperty(url, property, value) {
     data.urlData[url][property] = value;
     storage.update(oldStorage => _.merge({}, oldStorage, data));
     await extensionStorage.set(data);
+}
+
+export function updateExpectingTabClose(tabId, value=undefined) {
+    expectingTabClose.update(oldDict => {
+        if (! oldDict) {
+            return oldDict
+        }
+       oldDict[tabId] = value;
+       return oldDict
+    })
 }

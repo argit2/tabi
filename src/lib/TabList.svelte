@@ -1,6 +1,6 @@
 <script>
 import VirtualList from '@sveltejs/svelte-virtual-list';
-import { tabLists, updateTabLists, storage, setTabProperty, processUrlToPutOnStorage, getUrlData, importantTabs, toReadTabs, updateRelevantTabs, updateToReadTabs} from "../stores.js";
+import { tabLists, updateTabLists, storage, setTabProperty, processUrlToPutOnStorage, getUrlData, importantTabs, toReadTabs, updateRelevantTabs, updateToReadTabs, updateExpectingTabClose} from "../stores.js";
 import polyfillBrowser from '../polyfillBrowser.js';
 import _ from 'lodash';
 
@@ -67,8 +67,20 @@ function onClickRead(url) {
 }
 
 function onClickClose(tabId) {
+    updateExpectingTabClose(tabId, true);
     polyfillBrowser.tabs.remove(tabId);
-    // updating the UI is done by close tab event listener
+
+    // update the tab lists here instead of on event listener
+    // this is so we don't have to wait for the browser to remove the tab
+    // for the app to update
+    const newTabLists = _.clone($tabLists);
+    newTabLists?.forEach(tabList => {
+        if (! tabList) {
+            return;
+        }
+        tabList.tabs = tabList?.tabs?.filter(tab => tab.id != tabId) ?? [];
+    })
+    updateTabLists(newTabLists);
 }
 
 </script>

@@ -1,7 +1,8 @@
 import polyfillBrowser from './polyfillBrowser.js';
 import * as FastDiceCoefficient from './lib/fast-dice-coefficient/dice.js';
 const sorensenDice = FastDiceCoefficient.dice;
-import {updateTabLists, updateCurrentTab, updateExtensionStorage, updateBookmarkLists} from './stores.js';
+import {updateTabLists, updateCurrentTab, updateExtensionStorage, updateBookmarkLists, expectingTabClose, updateExpectingTabClose} from './stores.js';
+import {get} from 'svelte/store';
 
 // warning: slow
 function cloneObject(obj) {
@@ -225,6 +226,13 @@ class BrowserMediator {
     }
 
     onTabRemoved (tabId, info) {
+        const tabCloseDict = get(expectingTabClose) ?? {};
+        if (tabCloseDict[tabId]) {
+            // when user closes the tab from inside the extension
+            // the tab lists are updated during close
+            updateExpectingTabClose(tabId, undefined);
+            return;
+        }
         this.updateTabs();
     }
 

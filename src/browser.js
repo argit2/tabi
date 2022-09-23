@@ -167,6 +167,28 @@ class BrowserMediator {
         return orderedByParent;
     }
 
+    // ps: some browsers such as vivaldi won't have a history for opened tabs because they were opened too long ago
+    // when that happens, the first visit of the current tab will have happened just now
+    async getTabsAccessedAroundSameTime(tabs, currentTab, hours=48) {
+        if (! tabs || ! currentTab) {
+            return [];
+        }
+        const minutes = hours * 60;
+        const seconds = minutes * 60;
+        const currentTabVisits = await polyfillBrowser.history?.getVisits({url : currentTab.url}) ?? {};
+        if (! currentTabVisits || currentTabVisits.length == 0) {
+            return [];
+        }
+        const startTime = currentTabVisits[0].visitTime - seconds;
+        const endTime = currentTabVisits[0].visitTime + seconds;
+        const urlsVisited = await polyfillBrowser.history?.search({text: '', startTime : startTime, endTime: endTime}) ?? [];
+        const urlsVisitedDict = Object.fromEntries(urlsVisited.map(x => [x.url, true]));
+        const accessedAroundSameTime = tabs.filter(tab => {
+            return tab.url in urlsVisitedDict;
+        })
+        return accessedAroundSameTime;
+    }
+
     async getTabLists() {
         const tabs = await this.getTabsFromCurrentWindow();
         const currentTab = await this.getCurrentTab();
@@ -177,6 +199,8 @@ class BrowserMediator {
         const manualOrderComparison = (a1, a2) => {
             return a1.index - a2.index;
         }
+
+        const aroundSameTime = await this.getTabsAccessedAroundSameTime(tabs, currentTab);
 
         const domain = getDomain(getTabUrl(currentTab));
         const isSameDomain = (tab) => {
@@ -214,7 +238,11 @@ class BrowserMediator {
             {
                 title : 'Title Similarity',
                 tabs : tabSimilarity,
-            }
+            },
+            {
+                title : 'Access',
+                tabs: aroundSameTime
+            },
         ]
     }
 

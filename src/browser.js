@@ -133,13 +133,22 @@ class BrowserMediator {
         }
 
         const domain = getDomain(getTabUrl(currentTab));
-        const tabsWithSameDomain = tabs.filter(tab => {
+        const isSameDomain = (tab) => {
             return domain && getDomain(getTabUrl(tab)) == domain;
+        }
+        const isSameDomainArr = tabs.map(tab => {
+            return isSameDomain(tab);
+        })
+        const tabsWithSameDomain = tabs.filter((tab, index) => {
+            return isSameDomainArr[index];
         })
         .sort(manualOrderComparison);
+        const tabsWithoutSameDomain = tabs.filter((tab, index) => {
+            return !isSameDomainArr[index];
+        })
         
         // const currentTitleTokens = stringToTokens(currentTab.title);
-        const tabSimilarity = this.getMostSimilar(tabs, currentTab.title ?? '')
+        const tabSimilarity = this.getMostSimilar(tabsWithoutSameDomain, currentTab.title ?? '')
         .sort((a1, a2) => {
             if (a1[1] == a2[1]) {
                 return manualOrderComparison(a1, a2);
@@ -173,10 +182,17 @@ class BrowserMediator {
         }
 
         const domain = getDomain(getTabUrl(currentTab));
-        const bookmarksWithSameDomain = bookmarks.filter(bookmark => {
+        const isSameDomain = (bookmark) => {
             return domain && getDomain(bookmark?.url ?? '') == domain;
+        }
+        const isSameDomainArr = bookmarks.map(bookmark => isSameDomain(bookmark));
+        const bookmarksWithSameDomain = bookmarks.filter((bookmark, index) => {
+            return isSameDomainArr[index];
         })
-        const bookmarksSimilarity = this.getMostSimilar(bookmarks, currentTab.title ?? '').map(a => a[0]);
+        const bookmarksWithoutSameDomain = bookmarks.filter((bookmark, index) => {
+            return ! isSameDomainArr[index];
+        })
+        const bookmarksSimilarity = this.getMostSimilar(bookmarksWithoutSameDomain, currentTab.title ?? '').map(a => a[0]);
 
         const bookmarkLists = {
             'Domain' : {

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import polyfillBrowser from './polyfillBrowser.js';
+import polyfillBrowser from '../public/polyfillBrowser.js';
 
 export class ExtensionStorage {
     defaultStorage = {

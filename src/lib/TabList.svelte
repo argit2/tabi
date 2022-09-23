@@ -1,7 +1,7 @@
 <script>
 import VirtualList from '@sveltejs/svelte-virtual-list';
 import { tabLists, updateTabLists, storage, setTabProperty, processUrlToPutOnStorage, getUrlData, importantTabs, toReadTabs, updateRelevantTabs, updateToReadTabs, updateExpectingTabClose} from "../stores.js";
-import polyfillBrowser from '../polyfillBrowser.js';
+import polyfillBrowser from '../../public/polyfillBrowser.js';
 import _ from 'lodash';
 
 export let tabList;

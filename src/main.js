@@ -1,7 +1,7 @@
 import './app.css'
 import App from './App.svelte'
 import {updateTabLists, updateCurrentTab, updateExtensionStorage} from './stores.js';
-import polyfillBrowser from './polyfillBrowser.js';
+import polyfillBrowser from '../public/polyfillBrowser.js';
 import BrowserMediator from './browser.js';
 
 const app = new App({

@@ -12,16 +12,9 @@ for that reason, we pass a message through chrome api
 */
 // import {updateTabLists} from '../stores.js';
 
-var polyfillBrowser;
-if (typeof browser !== 'undefined') {
-    polyfillBrowser = browser;
-}
-else {
-    polyfillBrowser = chrome;
-}
-if (! polyfillBrowser) {
-    polyfillBrowser = browser;
-}
+import polyfillBrowser from './polyfillBrowser.js';
+
+import {getTabById, getTabUrl, isExtensionUrl} from './common.js';
 
 function setIconClick() {
     polyfillBrowser?.action?.onClicked.addListener(async (tab) => {
@@ -37,7 +30,9 @@ function setIconClick() {
 
 class TabBackgroundWorker {
     constructor () {
+        this.initializeEventListeners();
         this.setReplyToSvelte();
+        this.activeTabId = null;
     }
 
     async replyToSvelte(request, sender, sendResponse) {
@@ -45,6 +40,13 @@ class TabBackgroundWorker {
         switch (request?.messageType) {
             case 'getTabs':
                 sendResponse({
+                })
+                break;
+            // we use the background script just for initialize that value
+            // we need to know this before we open new tab with the extension
+            case 'getLastAccessedNonExtensionTab':
+                sendResponse({
+                    tabId : this.activeTabId,
                 })
                 break;
             default:
@@ -78,6 +80,35 @@ class TabBackgroundWorker {
             }
         }, 1000);
     }
+
+    async onTabActivated(activeInfo) {
+        if (! activeInfo) {
+            return;
+        }
+        const tab = await getTabById(activeInfo.tabId);
+        await this.setActiveTabId(tab);
+    }
+
+    async setActiveTabId(tab) {
+        if (! tab) {
+            return;
+        }
+        const tabUrl = getTabUrl(tab);
+        // about:blank condition is because
+        // when opening new tab on firefox, tabUrl is about:blank even if it's
+        // an extension tab
+        if (isExtensionUrl(tabUrl) || tabUrl.includes('about:blank')) {
+            return;
+        }
+        this.activeTabId = tab.id;
+    }
+
+    initializeEventListeners() {
+        polyfillBrowser.tabs.onActivated.addListener(
+            (activeInfo) => this.onTabActivated(activeInfo)
+        )
+    }
 }
 
 setIconClick();
+const backgroundWorker = new TabBackgroundWorker();

@@ -1,8 +1,9 @@
-import polyfillBrowser from './polyfillBrowser.js';
+import polyfillBrowser from '../public/polyfillBrowser.js';
 import * as FastDiceCoefficient from './lib/fast-dice-coefficient/dice.js';
 const sorensenDice = FastDiceCoefficient.dice;
 import {updateTabLists, updateCurrentTab, updateExtensionStorage, updateBookmarkLists, expectingTabClose, updateExpectingTabClose} from './stores.js';
 import {get} from 'svelte/store';
+import {getTabById, getTabUrl, isExtensionUrl} from '../public/common.js';
 
 // warning: slow
 function cloneObject(obj) {
@@ -38,16 +39,6 @@ function isBrowserUrl(url) {
     return usesBrowserProtocol || isNewTab;
 }
 
-function getTabUrl(tab) {
-    if (! tab) {
-        return null;
-    }
-    if (tab.url) {
-        return tab.url;
-    }
-    return tab.pendingUrl;
-}
-
 function stringToTokens(str) {
     if (! str) {
         return [];
@@ -63,6 +54,7 @@ function arrIsEmpty(arr) {
 class BrowserMediator {
     constructor () {
         this.flattenedBookmarks = null;
+        this.initializeActiveTabId();
     }
 
     async initializeCurrentTabs() {
@@ -202,9 +194,19 @@ class BrowserMediator {
 
         const aroundSameTime = await this.getTabsAccessedAroundSameTime(tabs, currentTab);
 
-        const domain = getDomain(getTabUrl(currentTab));
+        const currentTabUrl = getTabUrl(currentTab);
+        const domain = getDomain(currentTabUrl);
+        const currentTabUrlObject = new URL(currentTabUrl);
         const isSameDomain = (tab) => {
-            return domain && getDomain(getTabUrl(tab)) == domain;
+            const tabUrl = getTabUrl(tab);
+            const tabDomain = getDomain(tabUrl);
+            // consider browser tabs such as about:config and extensions page
+            // as having the same domain
+            if (! tabDomain) {
+                const tabUrlObject = new URL(tabUrl);
+                return tabUrlObject && currentTabUrlObject && tabUrlObject.protocol == currentTabUrlObject.protocol;
+            }
+            return domain && tabDomain == domain;
         }
         const isSameDomainArr = tabs.map(tab => {
             return isSameDomain(tab);
@@ -328,22 +330,46 @@ class BrowserMediator {
         this.updateTabs();
     }
 
-    async onTabActivated(activeInfo) {
-        if (! activeInfo) {
-            return;
-        }
-        const tab = await this.getTabById(activeInfo.tabId);
+    async setActiveTabId(tab) {
         if (! tab) {
             return;
         }
-        const isBrowserTab = isBrowserUrl(getTabUrl(tab));
-        if (isBrowserTab) {
+        const tabUrl = getTabUrl(tab);
+        // about:blank condition is because
+        // when opening new tab on firefox, tabUrl is about:blank even if it's
+        // an extension tab
+        if (isExtensionUrl(tabUrl) || tabUrl.includes('about:blank')) {
             return;
         }
         this.activeTabId = tab.id;
         this.updateTabs();
         this.updateBookmarks();
         updateCurrentTab(tab);
+    }
+
+    async initializeActiveTabId() {
+        const message = {
+            messageType : 'getLastAccessedNonExtensionTab'
+        }
+        const browserMediator = this;
+        polyfillBrowser.runtime.sendMessage(message, {}, function(response) {
+            if (response?.tabId == null) {
+                return;
+            }
+            const fn = async () => {
+                const tab = await getTabById(response.tabId);
+                await browserMediator.setActiveTabId(tab);
+            }
+            fn();
+        });
+    }
+
+    async onTabActivated(activeInfo) {
+        if (! activeInfo) {
+            return;
+        }
+        const tab = await getTabById(activeInfo.tabId);
+        await this.setActiveTabId(tab);
     }
 
     flattenBookmarksTree(root) {

@@ -178,8 +178,6 @@ class BrowserMediator {
             return a1.index - a2.index;
         }
 
-        const orderedByParent = this.getTabsOrderedByParent(tabs);
-
         const domain = getDomain(getTabUrl(currentTab));
         const isSameDomain = (tab) => {
             return domain && getDomain(getTabUrl(tab)) == domain;
@@ -208,10 +206,6 @@ class BrowserMediator {
             {
                 title : 'Manual order',
                 tabs : tabs.sort(manualOrderComparison)
-            },
-            {
-                title : 'By parent',
-                tabs : orderedByParent
             },
             {
                 title : 'Domain',

@@ -63,7 +63,7 @@ function onClickRead(url) {
     const oldValue = (data?.read ?? 0);
     const newValue = (oldValue + 1) % readStates;
     setTabProperty(url, 'read', newValue);
-    updateToReadTabs();
+    updateRelevantTabs();
 }
 
 function onClickClose(tabId) {

@@ -9,13 +9,13 @@ export let bookmarkLists = writable({});
 export let currentTab = writable({});
 export let storage = writable({});
 export let importantTabs = writable({});
+// deprecated, importantTabs now contain both important and toRead
 export let toReadTabs = writable({});
 export let expectingTabClose = writable({});
 
 export function updateTabLists(newTabLists) {
     tabLists.update(oldTabLists => newTabLists)
     updateRelevantTabs();
-    updateToReadTabs();
 }
 
 export function updateBookmarkLists(newBookmarkLists) {
@@ -29,9 +29,20 @@ function getAllTabs() {
 
 export function updateRelevantTabs() {
     const allTabs = getAllTabs();
-    const tabs = allTabs.filter(tab => {
-        return getUrlData(tab.url)?.relevant
+    const isImportantArr = allTabs.map(tab => {
+        return getUrlData(tab.url)?.relevant ?? false;
+    })
+    const importantTabsArr = allTabs.filter((tab, index) => {
+        return isImportantArr[index];
     }) ?? [];
+    const notImportantTabsArr = allTabs.filter((tab, index) => {
+        return ! isImportantArr[index];
+    }) ?? [];
+    const toReadTabs = notImportantTabsArr.filter((tab) => {
+        return getUrlData(tab.url)?.read == 1;
+    }) ?? [];
+    const tabs = [...importantTabsArr, ...toReadTabs];
+
     const newImportantTabs = {
         title : 'Important',
         tabs : tabs,
@@ -40,6 +51,7 @@ export function updateRelevantTabs() {
 }
 
 export function updateToReadTabs() {
+    // deprecated, importantTabs now contain both important and toRead
     const allTabs = getAllTabs();
     const tabs = allTabs.filter(tab => {
         return getUrlData(tab.url)?.read == 1;

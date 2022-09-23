@@ -82,7 +82,7 @@ export function processUrlToPutOnStorage (url) {
     if (! url) {
         return url;
     }
-    return url.split('?')[0];
+    return url.split('#')[0];
 }
 
 export async function setTabProperty(url, property, value) {

@@ -121,6 +121,52 @@ class BrowserMediator {
         return tabSimilarity;
     }
 
+    getTabsOrderedByParent(tabs) {
+        // observation: even with 800 tabs, openerTabId is usually undefined
+        // therefore this function is useless
+
+        const tabsByIdDict = Object.fromEntries(tabs.map(tab => [tab?.id, tab]));
+
+        // parentId : tab
+        const fromSameParentDict = {};
+        let tabsWithoutParent = [];
+        tabs.forEach(tab => {
+            if (! tab) {
+                return;
+            }
+            if (tab.openerTabId == null) {
+                tabsWithoutParent.push(tab);
+                return;
+            }
+            if (fromSameParentDict[tab.openerTabId] == null) {
+                fromSameParentDict[tab.openerTabId] = [];
+            }
+            fromSameParentDict[tab.openerTabId].push(tab);
+        })
+        // removes parents
+        tabsWithoutParent = tabsWithoutParent.filter(tab => {
+            return ! fromSameParentDict[tab?.id];
+        })
+
+        const orderedByParent = [];
+        Object.entries(fromSameParentDict).forEach(entry => {
+            if (! entry) {
+                return;
+            }
+            const [parentId, tabsFromSameParent] = entry;
+            if (! parentId) {
+                return;
+            }
+            const parent = tabsByIdDict[parentId];
+            if (parent) {
+                orderedByParent.push(parent);
+            }
+            orderedByParent.push(...(tabsFromSameParent ?? []));
+        })
+        orderedByParent.push(...tabsWithoutParent);
+        return orderedByParent;
+    }
+
     async getTabLists() {
         const tabs = await this.getTabsFromCurrentWindow();
         const currentTab = await this.getCurrentTab();
@@ -131,6 +177,8 @@ class BrowserMediator {
         const manualOrderComparison = (a1, a2) => {
             return a1.index - a2.index;
         }
+
+        const orderedByParent = this.getTabsOrderedByParent(tabs);
 
         const domain = getDomain(getTabUrl(currentTab));
         const isSameDomain = (tab) => {
@@ -159,9 +207,11 @@ class BrowserMediator {
         return [
             {
                 title : 'Manual order',
-                tabs : tabs.sort((a, b) => {
-                    return a.index < b.index;
-                })
+                tabs : tabs.sort(manualOrderComparison)
+            },
+            {
+                title : 'By parent',
+                tabs : orderedByParent
             },
             {
                 title : 'Domain',

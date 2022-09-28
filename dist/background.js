@@ -22,7 +22,7 @@ function setIconClick() {
         polyfillBrowser.windows.create({
             height : currentWindow.height,
             width : currentWindow.width,
-            url : polyfillBrowser.runtime.getURL('index.html'),
+            url : polyfillBrowser.runtime.getURL('index.html') ?? '',
             type : "popup"
         })
     });
@@ -42,6 +42,8 @@ class TabBackgroundWorker {
                 sendResponse({
                 })
                 break;
+            // we use the background script just for initialize that value
+            // we need to know this before we open new tab with the extension
             case 'getLastAccessedNonExtensionTab':
                 sendResponse({
                     tabId : this.activeTabId,

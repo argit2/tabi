@@ -14,19 +14,29 @@ function cloneObject(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
-function getDomain(url) {
+function getDomainAndPrefix(url) {
     if (! url) {
-        return url;
+        return {domain : '', prefix : ''};
     }
     const urlObject = new URL(url);
     const hostname = urlObject.hostname;
     const split = hostname.split('.');
     if (split.length == 1) {
-        return split[0];
+        return {
+            prefix : '',
+            domain : split[0]
+        }
+    }
+    let prefix = '';
+    if (split.length >= 3) {
+        prefix = split[0];
     }
     // example: kit.svelte.dev should return svelte.dev
     // example2: blog.tumblr.com should return tumblr.com
-    return `${split[split.length - 2]}.${split[split.length -1]}`;
+    return {
+        prefix: prefix, 
+        domain: `${split[split.length - 2]}.${split[split.length -1]}`
+    };
 }
 
 function isBrowserUrl(url) {
@@ -195,18 +205,18 @@ class BrowserMediator {
         const aroundSameTime = await this.getTabsAccessedAroundSameTime(tabs, currentTab);
 
         const currentTabUrl = getTabUrl(currentTab);
-        const domain = getDomain(currentTabUrl);
+        const {domain, prefix} = getDomainAndPrefix(currentTabUrl);
         const currentTabUrlObject = new URL(currentTabUrl);
         const isSameDomain = (tab) => {
             const tabUrl = getTabUrl(tab);
-            const tabDomain = getDomain(tabUrl);
+            const tabDomainAndPrefix = getDomainAndPrefix(tabUrl);
             // consider browser tabs such as about:config and extensions page
             // as having the same domain
-            if (! tabDomain) {
+            if (! tabDomainAndPrefix.domain) {
                 const tabUrlObject = new URL(tabUrl);
                 return tabUrlObject && currentTabUrlObject && tabUrlObject.protocol == currentTabUrlObject.protocol;
             }
-            return domain && tabDomain == domain;
+            return domain && tabDomainAndPrefix.domain == domain;
         }
         const isSameDomainArr = tabs.map(tab => {
             return isSameDomain(tab);
@@ -214,7 +224,22 @@ class BrowserMediator {
         const tabsWithSameDomain = tabs.filter((tab, index) => {
             return isSameDomainArr[index];
         })
-        .sort(manualOrderComparison);
+        .sort((tab1, tab2) => {
+            const tab1Prefix = getDomainAndPrefix(tab1.url).prefix ?? '';
+            const tab2Prefix = getDomainAndPrefix(tab2.url).prefix ?? '';
+            if (tab1Prefix != tab2Prefix) {
+                if (tab1Prefix === prefix) {
+                    return -1;
+                }
+                if (tab2Prefix === prefix) {
+                    return 1;
+                }
+                if (tab1Prefix && tab2Prefix) {
+                    return tab1Prefix.localeCompare(tab2Prefix);
+                }
+            }
+            return manualOrderComparison(tab1, tab2);
+        });
         const tabsWithoutSameDomain = tabs.filter((tab, index) => {
             return !isSameDomainArr[index];
         })
@@ -255,9 +280,9 @@ class BrowserMediator {
             return [];
         }
 
-        const domain = getDomain(getTabUrl(currentTab));
+        const {domain, prefix} = getDomainAndPrefix(getTabUrl(currentTab));
         const isSameDomain = (bookmark) => {
-            return domain && getDomain(bookmark?.url ?? '') == domain;
+            return domain && getDomainAndPrefix(bookmark?.url ?? '').domain == domain;
         }
         const isSameDomainArr = bookmarks.map(bookmark => isSameDomain(bookmark));
         const bookmarksWithSameDomain = bookmarks.filter((bookmark, index) => {

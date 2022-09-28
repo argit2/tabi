@@ -22,7 +22,7 @@ function setIconClick() {
         polyfillBrowser.windows.create({
             height : currentWindow.height,
             width : currentWindow.width,
-            url : polyfillBrowser.runtime.getURL('index.html'),
+            url : polyfillBrowser.runtime.getURL('index.html') ?? '',
             type : "popup"
         })
     });

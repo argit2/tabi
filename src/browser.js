@@ -167,7 +167,7 @@ class BrowserMediator {
         }
         const minutes = hours * 60;
         const seconds = minutes * 60;
-        const currentTabVisits = await polyfillBrowser.history?.getVisits({url : currentTab.url}) ?? {};
+        const currentTabVisits = await polyfillBrowser.history?.getVisits({url : currentTab.url ?? ''}) ?? {};
         if (! currentTabVisits || currentTabVisits.length == 0) {
             return [];
         }

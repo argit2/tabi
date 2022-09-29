@@ -73,9 +73,12 @@ export function updateCurrentTab(newCurrentTab) {
     currentTab.update(oldCurrentTab => newCurrentTab);
 }
 
+// get chrome storage and put it on svelte store
 export async function updateExtensionStorage() {
     const newStorage = await extensionStorage.get();
     storage.update(oldStorage => newStorage);
+    const fontSize = getFontSize();
+    setFontSizeOnDocument(fontSize);
 }
 
 export function processUrlToPutOnStorage (url) {
@@ -83,6 +86,11 @@ export function processUrlToPutOnStorage (url) {
         return url;
     }
     return url.split('#')[0];
+}
+
+export async function updateStorage(data) {
+    storage.update(oldStorage => _.merge({}, oldStorage, data));
+    await extensionStorage.set(data);
 }
 
 export async function setTabProperty(url, property, value) {
@@ -96,8 +104,34 @@ export async function setTabProperty(url, property, value) {
     const data = {urlData : {}};
     data.urlData[url] = {};
     data.urlData[url][property] = value;
-    storage.update(oldStorage => _.merge({}, oldStorage, data));
-    await extensionStorage.set(data);
+    await updateStorage(data);
+}
+
+export async function setDarkMode(bool) {
+    const data = {
+        extensionOptions : {
+            darkMode : bool
+        }
+    }
+    await updateStorage(data);
+}
+
+export function getFontSize () {
+    return get(storage)?.extensionOptions?.fontSize ?? getComputedStyle(document.documentElement)?.fontSize ?? '16px';
+}
+
+export function setFontSizeOnDocument(value) {
+    document.documentElement.style.setProperty('font-size', value);
+}
+
+export async function setFontSize(value) {
+    const data = {
+        extensionOptions: {
+            fontSize : value
+        }
+    }
+    await updateStorage(data);
+    setFontSizeOnDocument(value);
 }
 
 export function updateExpectingTabClose(tabId, value=undefined) {

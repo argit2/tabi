@@ -202,8 +202,6 @@ class BrowserMediator {
             return a1.index - a2.index;
         }
 
-        const aroundSameTime = await this.getTabsAccessedAroundSameTime(tabs, currentTab);
-
         const currentTabUrl = getTabUrl(currentTab);
         const {domain, prefix} = getDomainAndPrefix(currentTabUrl);
         const currentTabUrlObject = new URL(currentTabUrl);
@@ -265,10 +263,6 @@ class BrowserMediator {
             {
                 title : 'Title Similarity',
                 tabs : tabSimilarity,
-            },
-            {
-                title : 'Access',
-                tabs: aroundSameTime
             },
         ]
     }

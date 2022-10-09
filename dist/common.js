@@ -7,9 +7,22 @@ export function isExtensionUrl(url) {
         return false;
     }
     const extensionUrl = polyfillBrowser.runtime.getURL('');
-    const urlObject = new URL(url)
-    const extensionUrlObject = new URL(extensionUrl)
+    const urlObject = buildUrl(url);
+    const extensionUrlObject = buildUrl(extensionUrl);
+    if(urlObject == null || extensionUrlObject == null) {
+        return false;
+    }
     return urlObject.hostname == extensionUrlObject.hostname;
+}
+
+export function buildUrl(url) {
+    try {
+        const urlObject = new URL(url);
+        return urlObject;
+    }
+    catch(e) {
+        return null;
+    }
 }
 
 export function getTabUrl(tab) {

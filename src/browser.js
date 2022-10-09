@@ -5,7 +5,7 @@ import englishStopWordsDict from './englishStopWords.js';
 const sorensenDice = FastDiceCoefficient.dice;
 import {updateTabLists, updateCurrentTab, updateExtensionStorage, updateBookmarkLists, expectingTabClose, updateExpectingTabClose} from './stores.js';
 import {get} from 'svelte/store';
-import {getTabById, getTabUrl, isExtensionUrl} from '../public/common.js';
+import {getTabById, getTabUrl, isExtensionUrl, buildUrl} from '../public/common.js';
 
 // warning: slow
 function cloneObject(obj) {
@@ -17,10 +17,14 @@ function cloneObject(obj) {
 }
 
 function getDomainAndPrefix(url) {
+    const defaultResult = {domain : '', prefix : ''};
     if (! url) {
-        return {domain : '', prefix : ''};
+        return defaultResult;
     }
-    const urlObject = new URL(url);
+    const urlObject = buildUrl(url);
+    if (urlObject == null) {
+        return defaultResult;
+    }
     const hostname = urlObject.hostname;
     const split = hostname.split('.');
     if (split.length == 1) {
@@ -45,7 +49,10 @@ function isBrowserUrl(url) {
     if (! url) {
         return false;
     }
-    const urlObject = new URL(url);
+    const urlObject = buildUrl(url);
+    if (urlObject == null) {
+        return false;
+    }
     const usesBrowserProtocol = !! urlObject.protocol?.match(/browser|chrome|firefox|moz|about|vivaldi|brave|opera/gi);
     const isNewTab = !! urlObject.hostname?.match(/newtab/gi);
     return usesBrowserProtocol || isNewTab;
@@ -300,16 +307,24 @@ class BrowserMediator {
             return a1.index - a2.index;
         }
 
+        const manualOrderDict = {
+            title : 'Manual order',
+            tabs : tabs.sort(manualOrderComparison)
+        };
+
         const currentTabUrl = getTabUrl(currentTab);
         const {domain, prefix} = getDomainAndPrefix(currentTabUrl);
-        const currentTabUrlObject = new URL(currentTabUrl);
+        const currentTabUrlObject = buildUrl(currentTabUrl);
+        if (currentTabUrlObject == null) {
+            return [manualOrderDict];
+        }
         const isSameDomain = (tab) => {
             const tabUrl = getTabUrl(tab);
             const tabDomainAndPrefix = getDomainAndPrefix(tabUrl);
             // consider browser tabs such as about:config and extensions page
             // as having the same domain
             if (! tabDomainAndPrefix.domain) {
-                const tabUrlObject = new URL(tabUrl);
+                const tabUrlObject = buildUrl(tabUrl);
                 return tabUrlObject && currentTabUrlObject && tabUrlObject.protocol == currentTabUrlObject.protocol;
             }
             return domain && tabDomainAndPrefix.domain == domain;
@@ -353,10 +368,7 @@ class BrowserMediator {
         }).map(a => a[0]);
 
         return [
-            {
-                title : 'Manual order',
-                tabs : tabs.sort(manualOrderComparison)
-            },
+            manualOrderDict,
             {
                 title : 'Domain',
                 tabs : tabsWithSameDomain,

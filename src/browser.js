@@ -130,7 +130,6 @@ function sorensenDiceByToken(arr1, arr2) {
 class BrowserMediator {
     constructor () {
         this.flattenedBookmarks = null;
-        this.initializeActiveTabId();
     }
 
     async initializeCurrentTabs() {
@@ -150,16 +149,20 @@ class BrowserMediator {
         if (this.activeTabId != null) {
             tab = await polyfillBrowser.tabs.get(this.activeTabId);
         }
-        if (tab == null || arrIsEmpty(tab)) {
+        console.log('tab1', tab, this.activeTabId);
+        if (tab == null) {
             tab = await polyfillBrowser.tabs.query({ active: true, currentWindow : true});
         }
+        console.log('tab2', tab);
         if (tab == null || arrIsEmpty(tab)) {
             const windowId = await polyfillBrowser.windows.getCurrent()?.id;
             tab = await polyfillBrowser.tabs.query({active : true, windowId : windowId});
         }
+        console.log('tab3', tab);
         if (Array.isArray(tab)) {
             tab = tab[0];
         }
+        console.log('tab4', tab);
         return tab;
     }
 
@@ -497,8 +500,10 @@ class BrowserMediator {
         const message = {
             messageType : 'getLastAccessedNonExtensionTab'
         }
+        console.log('initializing active tab id')
         const browserMediator = this;
         polyfillBrowser.runtime.sendMessage(message, {}, function(response) {
+            console.log('response', response);
             if (response?.tabId == null) {
                 return;
             }

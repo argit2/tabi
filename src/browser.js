@@ -1,5 +1,7 @@
 import polyfillBrowser from '../public/polyfillBrowser.js';
+import _ from 'lodash';
 import * as FastDiceCoefficient from './lib/fast-dice-coefficient/dice.js';
+import englishStopWordsDict from './englishStopWords.js';
 const sorensenDice = FastDiceCoefficient.dice;
 import {updateTabLists, updateCurrentTab, updateExtensionStorage, updateBookmarkLists, expectingTabClose, updateExpectingTabClose} from './stores.js';
 import {get} from 'svelte/store';
@@ -56,8 +58,65 @@ function stringToTokens(str) {
     return str.toLowerCase().match(/[a-zA-Z]+/gi)
 }
 
+function removeStopWords(arr) {
+    if (arr == null) {
+        return null;
+    }
+    return arr.filter(x => ! englishStopWordsDict[x]);
+}
+
 function arrIsEmpty(arr) {
     return Array.isArray(arr) && arr.length == 0;
+}
+
+// Szymkiewicz–Simpson coefficient
+function simpsonCoefficient(arr1, arr2) {
+    if (arr1 == null || arr2 == null || arr1.length == 0 || arr2.length == 0) {
+        return 0;
+    }
+    const numerator = _.intersection(arr1, arr2).length;
+    const denominator = Math.min(arr1.length, arr2.length);
+    const coefficient = numerator / denominator;
+    return coefficient;
+}
+
+function intersectionCoefficient(arr1, arr2) {
+    if (arr1 == null || arr2 == null || arr1.length == 0 || arr2.length == 0) {
+        return 0;
+    }
+    const coefficient = _.intersection(arr1, arr2).length;
+    return coefficient
+}
+
+function sorensenDiceModified(str1, str2) {
+    if (!str1 || ! str2) {
+        return 0;
+    }
+    const diceCoefficient = sorensenDice(str1, str2);
+    const coefficient = diceCoefficient * (str1.length + str2.length);
+    return coefficient;
+}
+
+function sorensenDiceByToken(arr1, arr2) {
+    if (arr1 == null || arr2 == null || arr1.length == 0 || arr2.length == 0) {
+        return 0;
+    }
+    arr1 = _.uniq(arr1);
+    arr2 = _.uniq(arr2);
+
+    let matches = 0;
+    const minimumSimilarity = 0.7;
+    for (const word1 of arr1) {
+        for (const word2 of arr2) {
+            const diceCoefficient = sorensenDice(word1, word2);
+            if (diceCoefficient >= minimumSimilarity) {
+                matches = matches + 1;
+                break;
+            }
+        }
+    }
+    const coefficient = Math.ceil(matches / 2);
+    return coefficient
 }
 
 // is a class because might hold persistent data structures
@@ -109,18 +168,57 @@ class BrowserMediator {
         return tabs ?? [];
     }
 
-    getMostSimilar(tabOrBookmarkArr, title) {
+    getMostSimilarBySorensenDice(tabOrBookmarkArr, title) {
         if (! tabOrBookmarkArr || ! Array.isArray(tabOrBookmarkArr)) {
             return [];
         }
-        const minimumSimilarity = 0.25;
+        // const minimumSimilarity = 0.25;
+        let minimumSimilarity = 15;
+        minimumSimilarity = Math.max(minimumSimilarity, 1);
         const tabSimilarity = tabOrBookmarkArr.map(tabOrBookmark => {
-            // const titleTokens = stringToTokens(tabOrBookmark.title);
-            const similarity = sorensenDice(title ?? '', tabOrBookmark.title ?? '')
+            const similarity = sorensenDiceModified(title ?? '', tabOrBookmark.title ?? '');
             return [tabOrBookmark, similarity];
         })
-        .filter(a => a[1] >= minimumSimilarity)
-        return tabSimilarity;
+        const filtered = tabSimilarity.filter(a => a[1] >= minimumSimilarity)
+        console.log(tabSimilarity);
+        return filtered;
+    }
+
+    getMostSimilarBySorensenDice2(tabOrBookmarkArr, title) {
+        if (! tabOrBookmarkArr || ! Array.isArray(tabOrBookmarkArr)) {
+            return [];
+        }
+        title = title ?? '';
+        const tabSimilarity = tabOrBookmarkArr.map(tabOrBookmark => {
+            const tabOrBookmarkTitle = tabOrBookmark.title ?? '';
+            if (tabOrBookmarkTitle.length == 0) {
+                return 0;
+            }
+            const minimumSimilarity = 0.5 * Math.min(title.length / tabOrBookmarkTitle.length, tabOrBookmarkTitle.length / title.length);
+            const similarity = sorensenDice(title, tabOrBookmarkTitle);
+            return [tabOrBookmark, similarity, minimumSimilarity];
+        })
+        const filtered = tabSimilarity.filter(a => a[1] >= a[2])
+        console.log(tabSimilarity);
+        return filtered;
+    }
+
+    getMostSimilarBySorensenDiceByToken(tabOrBookmarkArr, titleTokens) {
+        if (! tabOrBookmarkArr || ! Array.isArray(tabOrBookmarkArr)) {
+            return [];
+        }
+        titleTokens = titleTokens ?? [];
+        const minimumSimilarity = 1;
+        const tabSimilarity = tabOrBookmarkArr.map(tabOrBookmark => {
+            let tabTitleTokens = stringToTokens(tabOrBookmark.title ?? '') ?? [];
+            tabTitleTokens = removeStopWords(tabTitleTokens) ?? [];
+            // const similarity = intersectionCoefficient(titleTokens ?? [], tabTitleTokens);
+            const similarity = sorensenDiceByToken(titleTokens, tabTitleTokens);
+            return [tabOrBookmark, similarity];
+        })
+        console.log('tabSimilarity', tabSimilarity);
+        const filtered = tabSimilarity.filter(a => a[1] >= minimumSimilarity)
+        return filtered;
     }
 
     getTabsOrderedByParent(tabs) {
@@ -242,8 +340,11 @@ class BrowserMediator {
             return !isSameDomainArr[index];
         })
         
-        // const currentTitleTokens = stringToTokens(currentTab.title);
-        const tabSimilarity = this.getMostSimilar(tabsWithoutSameDomain, currentTab.title ?? '')
+        let currentTitleTokens = stringToTokens(currentTab.title);
+        currentTitleTokens = removeStopWords(currentTitleTokens) ?? [];
+        // const tabSimilarity = this.getMostSimilarBySorensenDice(tabsWithoutSameDomain, currentTab.title ?? '')
+        // const tabSimilarity = this.getMostSimilarBySorensenDice2(tabsWithoutSameDomain, currentTab.title ?? '')
+        const tabSimilarity = this.getMostSimilarBySorensenDiceByToken(tabsWithoutSameDomain, currentTitleTokens)
         .sort((a1, a2) => {
             if (a1[1] == a2[1]) {
                 return manualOrderComparison(a1, a2);
@@ -273,7 +374,9 @@ class BrowserMediator {
         if (! bookmarks || ! currentTab || currentTab.length == 0) {
             return [];
         }
-
+        const manualOrderComparison = (a1, a2) => {
+            return a1.index - a2.index;
+        }
         const {domain, prefix} = getDomainAndPrefix(getTabUrl(currentTab));
         const isSameDomain = (bookmark) => {
             return domain && getDomainAndPrefix(bookmark?.url ?? '').domain == domain;
@@ -285,7 +388,16 @@ class BrowserMediator {
         const bookmarksWithoutSameDomain = bookmarks.filter((bookmark, index) => {
             return ! isSameDomainArr[index];
         })
-        const bookmarksSimilarity = this.getMostSimilar(bookmarksWithoutSameDomain, currentTab.title ?? '').map(a => a[0]);
+        let currentTitleTokens = stringToTokens(currentTab.title ?? '') ?? [];
+        currentTitleTokens = removeStopWords(currentTitleTokens) ?? [];
+        // const bookmarksSimilarity = this.getMostSimilarBySorensenDice(bookmarksWithoutSameDomain, currentTab.title ?? '');
+        const bookmarksSimilarity = this.getMostSimilarBySorensenDiceByToken(bookmarksWithoutSameDomain, currentTitleTokens)
+        .sort((a1, a2) => {
+            if (a1[1] == a2[1]) {
+                return manualOrderComparison(a1, a2);
+            }
+            return a2[1] - a1[1];
+        }).map(a => a[0]);
 
         const bookmarkLists = {
             'Domain' : {

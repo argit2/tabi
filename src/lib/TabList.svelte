@@ -94,7 +94,7 @@ function onClickClose(tabId) {
                 <div class="flex flex-row w-full">
                     {#if item?.type === 'bookmark'}
                     <div class="flex w-4 h-4 min-w-max min-h-max items-center justify-items-center self-center">
-                        <i class="fa-solid fa-bookmark self-center text-sm self-justify-center m-auto"></i>
+                        <i class="w-4 h-4 fa-solid fa-bookmark self-center text-sm self-justify-center m-auto text-center"></i>
                     </div>
                     {:else}
                     <div class="block w-4 h-4 min-w-max min-h-max self-center">

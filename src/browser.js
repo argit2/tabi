@@ -370,7 +370,10 @@ class BrowserMediator {
 
     async getBookmarkLists () {
         const currentTab = await this.getCurrentTab();
-        const bookmarks = await this.getFlattenedBookmarks() ?? [];
+        let bookmarks = await this.getFlattenedBookmarks() ?? [];
+
+        const bookmarksDict = Object.fromEntries(bookmarks.map(x => [x.url, x]));
+        bookmarks = Object.values(bookmarksDict);
         if (! bookmarks || ! currentTab || currentTab.length == 0) {
             return [];
         }

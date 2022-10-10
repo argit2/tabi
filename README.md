@@ -23,7 +23,26 @@ This extension was made as part of my bachelor's thesis
   - Organizing tabs with as little user input as possible
   - Allowing the user to add more contextual data to the tabs, such as whether the tab was already read or not.
 
-## Loading the extension
+# For developers
+
+## Initial setup
+
+Building this application requires:
+- A Linux environment. It can be Linux, Git Bash on Windows or Windows Subsystem for Linux
+- NodeJS and npm to be installed
+
+1) Run `npm install` on terminal
+
+## Building the extension
+
+1) Run `npm run build` on the terminal (bash)
+2) Go to the extensions page on your browser
+3) Click the button that reloads the extension
+
+## Building for release
+1) Run `npm run release` on terminal (bash)
+
+## Loading the extension on browser
 
 ### Firefox
 
@@ -37,17 +56,10 @@ This extension was made as part of my bachelor's thesis
 
 ### Chrome, Edge, Opera, Brave, Vivaldi and other Chromium based browsers
 
-
 1) Open the extensions page
 2) Enable developer mode
 3) Click on "Load unpacked"
 4) Load the `dist` folder
-
-## Building the extension
-
-1) Run `npm run build` on the terminal
-2) Go to the extensions page on your browser
-3) Click the button that reloads the extension
 
 ## Built with
 

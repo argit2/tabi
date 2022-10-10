@@ -87,8 +87,8 @@ function onClickClose(tabId) {
 </script>
 
 <div class="flex flex-col justify-items-center justify-center max-w-full h-full {tabList.title?.includes("Manual order") ? 'row-start-1 row-end-4' : 'row-span-1'} md:row-auto">
-    <div class="ml-4 mr-4 text-md max-h-10 h-7">{ tabList.title }</div>
-    <div class="border-t border-b md:border border-black dark:border-zinc-400 rounded divide-y overflow-auto grow">
+    <div class="shrink-0 md:ml-4 md:mr-4 ml-2 mr-2 text-sm h-6 font-bold">{ tabList.title }</div>
+    <div class="md:border border-black dark:border-zinc-400 rounded divide-y overflow-auto grow">
         <VirtualList items={[...(tabList?.tabs ?? []), ...(bookmarkList?.bookmarks ?? [])]} let:item>
         {#if item?.isTabGroup}
         <div class="{tabRowClasses}">

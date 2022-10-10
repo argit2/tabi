@@ -18,7 +18,6 @@
   "permissions": [
     "tabs",
     "storage",
-    "history",
     "bookmarks",
     "tabGroups"
   ],

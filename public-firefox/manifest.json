@@ -18,10 +18,7 @@
   "permissions": [
     "tabs",
     "storage",
-    "history",
-    "bookmarks",
-    "contextualIdentities",
-    "cookieStoreId"
+    "bookmarks"
   ],
 
   "background": {

@@ -135,13 +135,13 @@ class BrowserMediator {
     async initializeCurrentTabs() {
         const tabs = await this.getTabsFromCurrentWindow();
 
-        const history = await polyfillBrowser.history.search({text : ''});
-        const visits = await Promise.all(tabs.map(async tab => {
-            return polyfillBrowser.history.getVisits({url : getTabUrl(tab)})
+        // const history = await polyfillBrowser.history.search({text : ''});
+        // const visits = await Promise.all(tabs.map(async tab => {
+        //     return polyfillBrowser.history.getVisits({url : getTabUrl(tab)})
 
-        }));
-        console.log(history);
-        console.log(visits)
+        // }));
+        // console.log(history);
+        // console.log(visits)
     }
 
     async getCurrentTab() {

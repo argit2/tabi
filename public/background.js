@@ -55,8 +55,12 @@ function setIconClickForSidebarWindow() {
 
 function setIconClick() {
     polyfillBrowser?.action?.onClicked.addListener(async (tab) => {
-        
+        openExtensionInNewTab();
     });
+}
+
+function getExtensionUrl() {
+    return polyfillBrowser.runtime.getURL('index.html') ?? '';
 }
 
 async function createFullPopUpExtensionWindow() {
@@ -64,8 +68,15 @@ async function createFullPopUpExtensionWindow() {
     await polyfillBrowser.windows.create({
         height : currentWindow.height,
         width : currentWindow.width,
-        url : polyfillBrowser.runtime.getURL('index.html') ?? '',
+        url : getExtensionUrl(),
         type : "popup"
+    })
+}
+
+async function openExtensionInNewTab() {
+    await polyfillBrowser.tabs.create({
+        active: true,
+        url: getExtensionUrl()
     })
 }
 
@@ -79,7 +90,7 @@ async function startSidebarWindowExtensionMode() {
         height : currentWindow.height,
         width : sidebarWidth,
         left: 0,
-        url : polyfillBrowser.runtime.getURL('index.html') ?? '',
+        url : getExtensionUrl(),
         type : "popup"
     })
     console.log(currentWindow);

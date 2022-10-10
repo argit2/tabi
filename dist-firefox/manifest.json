@@ -26,10 +26,6 @@
     "page" : "background.html"
   },
 
-  "chrome_url_overrides" : {
-    "newtab": "index.html"
-  },
-
   "browser_specific_settings": {
     "gecko": {
       "id": "tabi@example.com",

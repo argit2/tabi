@@ -27,10 +27,6 @@
     "type": "module"
   },
 
-  "chrome_url_overrides" : {
-    "newtab": "index.html"
-  },
-
   "action" : {
 
   }

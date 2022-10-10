@@ -523,7 +523,7 @@ class BrowserMediator {
             return;
         }
         this.activeTabId = tab.id;
-        this.updateTabs();
+        await this.updateTabs();
         this.updateBookmarks();
         updateCurrentTab(tab);
     }

@@ -49,6 +49,7 @@ const readStates = Object.keys(readIconDict).length;
 
 const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center rounded hover:bg-zinc-300 dark:hover:bg-zinc-600'
 const iconClasses = 'text-sm self-center self-justify-center m-auto';
+const tabRowClasses = 'flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-zinc-600 dark:hover:border-l-zinc-400 border-l-2 border-l-transparent';
 
 function onClickRelevant(url) {
     url = processUrlToPutOnStorage(url);
@@ -89,7 +90,12 @@ function onClickClose(tabId) {
     <div class="ml-4 mr-4 text-md max-h-10 h-7">{ tabList.title }</div>
     <div class="border-t border-b md:border border-black dark:border-zinc-400 rounded divide-y overflow-auto grow">
         <VirtualList items={[...(tabList?.tabs ?? []), ...(bookmarkList?.bookmarks ?? [])]} let:item>
-        <div class="flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-zinc-600 dark:hover:border-l-zinc-400 border-l-2 border-l-transparent {item.id == currentTab.id ? 'bg-zinc-200 dark:bg-zinc-600' : ''}" title="{item.title + '\n' + item.url}">
+        {#if item?.isTabGroup}
+        <div class="{tabRowClasses}">
+            <div class="text-sm text-truncate whitespace-nowrap w-full">{item.title}</div>
+        </div>
+        {:else}
+        <div class="{tabRowClasses} {item.id == currentTab.id ? 'bg-zinc-200 dark:bg-zinc-600' : ''}" title="{item.title + '\n' + item.url}">
             <div class="w-full overflow-hidden ml-1"  on:click={() => onListItemClick(item)}>
                 <div class="flex flex-row w-full">
                     {#if item?.type === 'bookmark'}
@@ -118,6 +124,7 @@ function onClickClose(tabId) {
             </div>
             {/if}
         </div>
+        {/if}
         </VirtualList>
     </div>
 </div>

@@ -19,7 +19,9 @@
     "tabs",
     "storage",
     "history",
-    "bookmarks"
+    "bookmarks",
+    "contextualIdentities",
+    "cookieStoreId"
   ],
 
   "background": {

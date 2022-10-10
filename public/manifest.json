@@ -19,7 +19,8 @@
     "tabs",
     "storage",
     "history",
-    "bookmarks"
+    "bookmarks",
+    "tabGroups"
   ],
 
   "background": {

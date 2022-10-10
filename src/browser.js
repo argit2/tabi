@@ -178,6 +178,36 @@ class BrowserMediator {
         return tabs ?? [];
     }
 
+    async addGroupsToTabListChrome(tabArr) {
+        if (! polyfillBrowser.tabGroups) {
+            return tabArr;
+        }
+        let lastTabGroup = -1;
+        const newTabArr = [];
+        for (const tab of tabArr) {
+            if (tab?.groupId != lastTabGroup) {
+                lastTabGroup = tab?.groupId;
+
+                if(tab?.groupId !== polyfillBrowser.tabGroups.TAB_GROUP_ID_NONE) {
+                    const group = await polyfillBrowser.tabGroups.get(tab?.groupId);
+                    if (group) {
+                        group.isTabGroup = true;
+                        newTabArr.push(group);
+                    }
+                }
+            }
+            newTabArr.push(tab);
+        }
+        console.log('group', tabArr, newTabArr);
+        return newTabArr;
+    }
+
+    async addGroupsToTabList(tabArr) {
+        // firefox doesn't have tab groups
+        // it has containers, and they don't follow any hierarchy
+        return await this.addGroupsToTabListChrome(tabArr);
+    }
+
     getMostSimilarBySorensenDice(tabOrBookmarkArr, title) {
         if (! tabOrBookmarkArr || ! Array.isArray(tabOrBookmarkArr)) {
             return [];
@@ -310,9 +340,11 @@ class BrowserMediator {
             return a1.index - a2.index;
         }
 
+        let manualOrderTabs = _.clone(tabs).sort(manualOrderComparison);
+        manualOrderTabs = await this.addGroupsToTabList(manualOrderTabs);
         const manualOrderDict = {
             title : 'Manual order',
-            tabs : tabs.sort(manualOrderComparison)
+            tabs : manualOrderTabs
         };
 
         const currentTabUrl = getTabUrl(currentTab);

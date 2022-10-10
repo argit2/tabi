@@ -1,6 +1,6 @@
 {
 
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Tabi",
   "version": "1.0",
 
@@ -27,9 +27,7 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "tabi@example.com",
-      "strict_min_version": "42.0",
-      "update_url" : "https://github.com/argit2/tabi/blob/main/releases/tabi-1.0.zip"
+      "id": "tabi@example.com"
     }
   },
 

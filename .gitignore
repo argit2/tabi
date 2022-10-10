@@ -11,6 +11,9 @@ node_modules
 dist-ssr
 *.local
 
+dist
+dist-firefox
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

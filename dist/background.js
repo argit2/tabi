@@ -16,16 +16,97 @@ import polyfillBrowser from './polyfillBrowser.js';
 
 import {getTabById, getTabUrl, isExtensionUrl} from './common.js';
 
+async function getAllSidebarWindows() {
+    const allWindows = await polyfillBrowser.windows.getAll({
+        windowTypes : ['popup']
+    }) ?? [];
+    console.log(allWindows);
+    const isSidebarExtensionWindow = await Promise.all(allWindows.map(async w => {
+        const tabs = await polyfillBrowser.tabs.query({
+            windowId: w.id
+        }) ?? [];
+        return tabs.some(tab => isExtensionUrl(tab.url));
+    }));
+    const sidebarWindows = allWindows.filter((w, index) => {
+        return isSidebarExtensionWindow[index];
+    })
+    console.log(sidebarWindows);
+    return sidebarWindows;
+}
+
+async function closeAllExtensionWindows() {
+    const extensionWindows = await getAllSidebarWindows() ?? [];
+    extensionWindows.forEach(async extensionWindow => {
+        await polyfillBrowser.windows.remove(extensionWindow?.id);
+    })
+}
+
+function setIconClickForSidebarWindow() {
+    polyfillBrowser?.action?.onClicked.addListener(async (tab) => {
+        const extensionWindows = await getAllSidebarWindows() ?? [];
+        if (extensionWindows.length > 0) {
+            await exitSideBarWindowExtensionMode();
+        }
+        else {
+            await startSidebarWindowExtensionMode();
+        }
+    });
+}
+
 function setIconClick() {
     polyfillBrowser?.action?.onClicked.addListener(async (tab) => {
-        const currentWindow = await polyfillBrowser.windows.getCurrent();
-        polyfillBrowser.windows.create({
-            height : currentWindow.height,
-            width : currentWindow.width,
-            url : polyfillBrowser.runtime.getURL('index.html') ?? '',
-            type : "popup"
-        })
+        
     });
+}
+
+async function createFullPopUpExtensionWindow() {
+    const currentWindow = await polyfillBrowser.windows.getCurrent();
+    await polyfillBrowser.windows.create({
+        height : currentWindow.height,
+        width : currentWindow.width,
+        url : polyfillBrowser.runtime.getURL('index.html') ?? '',
+        type : "popup"
+    })
+}
+
+const sidebarWidth = 420;
+async function startSidebarWindowExtensionMode() {
+    const currentWindow = await polyfillBrowser.windows.getCurrent();
+
+    await closeAllExtensionWindows();
+
+    await polyfillBrowser.windows.create({
+        height : currentWindow.height,
+        width : sidebarWidth,
+        left: 0,
+        url : polyfillBrowser.runtime.getURL('index.html') ?? '',
+        type : "popup"
+    })
+    console.log(currentWindow);
+    await polyfillBrowser.windows.update(
+        currentWindow.id,
+        {
+            state: "normal",
+            left: sidebarWidth,
+            width: currentWindow.width - sidebarWidth,
+
+        }
+    )
+}
+
+async function exitSideBarWindowExtensionMode() {
+    const currentWindow = await polyfillBrowser.windows.getCurrent();
+
+    await closeAllExtensionWindows();
+
+    await polyfillBrowser.windows.update(
+        currentWindow.id,
+        {
+            left: currentWindow.left - sidebarWidth,
+            width: currentWindow.width + sidebarWidth,
+
+        }
+    )
 }
 
 class TabBackgroundWorker {

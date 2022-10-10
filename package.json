@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && bash ./compile_firefox.sh",
-    "release" : "npm run build && web-ext build -s ./dist-firefox -a ./releases --overwrite-dest && zip -r -FS ./releases/tabi-chromium ./dist --exclude '*.git*'",
+    "release" : "npm run build && web-ext build -s ./dist-firefox -a ./releases --overwrite-dest && zip -r -FS ./releases/tabi-chromium ./dist --exclude '*.git*' && bash ./compile_source_code.sh",
     "preview": "vite preview"
   },
   "devDependencies": {

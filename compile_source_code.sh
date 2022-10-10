@@ -1,0 +1,1 @@
+zip -r -FS ./releases/tabi-source-code * --exclude '*.git*' './node_modules/*' './dist-firefox/*' './dist/*' './releases/*'

@@ -49,7 +49,7 @@ const readStates = Object.keys(readIconDict).length;
 
 const iconContainerClasses = 'self-center self-justify-center flex w-5 h-6 items-center justify-items-center rounded hover:bg-zinc-300 dark:hover:bg-zinc-600'
 const iconClasses = 'text-sm self-center self-justify-center m-auto';
-const tabRowClasses = 'flex flex-row ml-4 mr-4 cursor-pointer hover:border-l-zinc-600 dark:hover:border-l-zinc-400 border-l-2 border-l-transparent';
+const tabRowClasses = 'flex flex-row md:ml-4 md:mr-4 ml-1 mr-2 cursor-pointer hover:border-l-zinc-600 dark:hover:border-l-zinc-400 border-l-2 border-l-transparent';
 
 function onClickRelevant(url) {
     url = processUrlToPutOnStorage(url);
